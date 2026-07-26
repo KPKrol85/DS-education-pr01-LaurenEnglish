@@ -42,10 +42,10 @@
 
 - [ ] **PH2-01 — Align the runtime checklist with executable registries**
   - [ ] derive the final CSS and JavaScript graph statements from `RUNTIME_CSS_PATHS` and `RUNTIME_JAVASCRIPT_PATHS` after `PH1-01`
-  - [ ] replace conflicting 27/29 CSS and 20 JavaScript claims with one consistent current contract, avoiding repeated fixed counts where the configuration can be referenced directly
-  - [ ] update page coverage to distinguish the six indexable routes from all twelve HTML documents, including the contact, legal, and utility pages
-  - [ ] align the responsive, SEO, PWA, and post-deployment checklist sections with the same route registry
-  - [ ] verify every retained count and route list against `scripts/pwa-config.mjs` and `scripts/site-config.mjs`
+  - [x] replace conflicting 27/29 CSS and 20 JavaScript claims with one consistent current contract, avoiding repeated fixed counts where the configuration can be referenced directly
+  - [x] update page coverage to distinguish the six indexable routes from all twelve HTML documents, including the contact, legal, and utility pages
+  - [x] align the responsive, SEO, PWA, and post-deployment checklist sections with the same route registry
+  - [x] verify every retained count and route list against `scripts/pwa-config.mjs` and `scripts/site-config.mjs`
   - **Depends on:** `PH1-01`
   - **Source:** `daily-AUDIT.md` — P2-01
   - **Completion condition:** `docs/runtime-checklist.md` contains one internally consistent runtime and route contract derived from the current executable registries
