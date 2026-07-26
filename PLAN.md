@@ -32,7 +32,7 @@
   - [ ] delete the unused `js/modules/contactForm.js` and unreferenced `js/modules/progressTracker.js` modules without changing the active `js/pages/progress-page.js` flow
   - [ ] remove `/js/modules/contactForm.js` from `RUNTIME_JAVASCRIPT_PATHS` in `scripts/pwa-config.mjs`
   - [ ] regenerate `service-worker.js` through `npm run build:sw` and confirm that its precache graph contains neither retired module
-  - [ ] run `npm run lint:js`, `npm run check:content`, `npm run check:pwa`, and the focused `npm run test:e2e:seo` browser suite
+  - [ ] run `npm run lint:js`, `npm run check:content`, `npm run check:pwa`, and the focused `npm run test:e2e:interactions` browser suite
   - **Source:** `daily-AUDIT.md` — P2-03
   - **Completion condition:** canonical imports, initializers, modules, and PWA paths contain no retired interaction branch, while the contact form, active progress journal, and generated Service Worker contracts pass focused verification
 
