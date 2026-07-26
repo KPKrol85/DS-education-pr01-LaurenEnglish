@@ -38,7 +38,7 @@ None detected.
 
 ### [P2-02] README points image maintenance at derived fallbacks
 
-**Status:** Open
+**Status:** Resolved
 
 - **Classification:** Contract mismatch
 - **Evidence:** `README.md:135`, `README.md:345`, `scripts/image-config.mjs:1`, `scripts/optimize-images.mjs:86`

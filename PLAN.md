@@ -51,11 +51,11 @@
   - **Source:** `daily-AUDIT.md` — P2-01
   - **Completion condition:** `docs/runtime-checklist.md` contains one internally consistent runtime and route contract derived from the current executable registries
 
-- [ ] **PH2-02 — Correct the bilingual image-maintenance contract**
-  - [ ] update the Polish README image section to identify `assets/image-sources/` as the canonical editable input
-  - [ ] update the equivalent English section with the same technical facts
-  - [ ] document `assets/img/` as generated public JPEG, AVIF, and WebP output for assets configured in `scripts/image-config.mjs`
-  - [ ] clarify that `npm run images` regenerates the configured formats from canonical originals and remains separate from the normal production build
-  - [ ] verify factual parity between both language sections and the behavior of `scripts/optimize-images.mjs`
+- [x] **PH2-02 — Correct the bilingual image-maintenance contract**
+  - [x] update the Polish README image section to identify `assets/image-sources/` as the canonical editable input
+  - [x] update the equivalent English section with the same technical facts
+  - [x] document `assets/img/` as generated public JPEG, AVIF, and WebP output for assets configured in `scripts/image-config.mjs`
+  - [x] clarify that `npm run images` regenerates the configured formats from canonical originals and remains separate from the normal production build
+  - [x] verify factual parity between both language sections and the behavior of `scripts/optimize-images.mjs`
   - **Source:** `daily-AUDIT.md` — P2-02
   - **Completion condition:** both README language sections identify the same canonical inputs, generated outputs, and image-regeneration boundary

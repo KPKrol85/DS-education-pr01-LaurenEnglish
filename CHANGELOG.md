@@ -11,6 +11,7 @@ All significant changes to this project are documented in this file.
 ### Documentation
 
 - Aligned the runtime checklist with canonical asset, route, indexing, published-page, and precache registries.
+- Corrected the bilingual image-maintenance contract for canonical originals and generated JPEG, AVIF, and WebP outputs.
 
 ## [1.0.0] - 2026-07-26
 
