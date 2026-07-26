@@ -4,6 +4,10 @@ All significant changes to this project are documented in this file.
 
 ## [Unreleased]
 
+### Fixed
+
+- Retained exactly fourteen valid local progress-journal days and rejected impossible or future stored dates.
+
 ### Removed
 
 - Removed retired contact-form and progress-tracker branches from canonical JavaScript and the PWA precache graph.

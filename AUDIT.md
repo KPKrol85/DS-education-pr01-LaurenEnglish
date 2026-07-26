@@ -77,6 +77,8 @@ None detected.
 
 ### [P1-01] Progress retention drops the oldest promised day
 
+**Status:** Resolved
+
 **Classification:** P1 — functional correctness and browser-local data integrity
 
 **Affected area:** progress journal persistence

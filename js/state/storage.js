@@ -23,11 +23,29 @@ const toLocalDateKey = (date) => {
   return `${year}-${month}-${day}`;
 };
 
+const startOfLocalDay = (date) => {
+  const localDay = new Date(date);
+  localDay.setHours(0, 0, 0, 0);
+  return localDay;
+};
+
 const parseLocalDateKey = (key) => {
   if (!DATE_KEY_PATTERN.test(key)) return null;
   const [year, month, day] = key.split("-").map(Number);
-  const date = new Date(year, month - 1, day);
-  return Number.isNaN(date.getTime()) ? null : date;
+  const date = new Date(0);
+  date.setFullYear(year, month - 1, day);
+  date.setHours(0, 0, 0, 0);
+
+  if (
+    Number.isNaN(date.getTime()) ||
+    date.getFullYear() !== year ||
+    date.getMonth() !== month - 1 ||
+    date.getDate() !== day
+  ) {
+    return null;
+  }
+
+  return date;
 };
 
 const sanitizeGoals = (goals) => {
@@ -49,7 +67,7 @@ const sanitizeCheckIns = (checkIns) => {
   const trackIds = getTrackIds();
 
   Object.entries(checkIns).forEach(([dateKey, entries]) => {
-    if (!DATE_KEY_PATTERN.test(dateKey) || typeof entries !== "object") return;
+    if (!parseLocalDateKey(dateKey) || typeof entries !== "object") return;
     const cleanEntry = {};
     trackIds.forEach((trackId) => {
       if (typeof entries[trackId] === "boolean") {
@@ -63,7 +81,7 @@ const sanitizeCheckIns = (checkIns) => {
 };
 
 const pruneCheckIns = (checkIns) => {
-  const today = new Date();
+  const today = startOfLocalDay(new Date());
   const earliest = new Date(today);
   earliest.setDate(today.getDate() - (MAX_DAYS_TO_KEEP - 1));
 
@@ -71,7 +89,7 @@ const pruneCheckIns = (checkIns) => {
   Object.entries(checkIns).forEach(([dateKey, value]) => {
     const date = parseLocalDateKey(dateKey);
     if (!date) return;
-    if (date >= earliest) {
+    if (date >= earliest && date <= today) {
       pruned[dateKey] = value;
     }
   });
