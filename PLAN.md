@@ -41,8 +41,8 @@
 
 **Goal:** Make operational documentation match the executable route, runtime-asset, and image-generation sources of truth.
 
-- [ ] **PH2-01 — Align the runtime checklist with executable registries**
-  - [ ] derive the final CSS and JavaScript graph statements from `RUNTIME_CSS_PATHS` and `RUNTIME_JAVASCRIPT_PATHS` after `PH1-01`
+- [x] **PH2-01 — Align the runtime checklist with executable registries**
+  - [x] derive the final CSS and JavaScript graph statements from `RUNTIME_CSS_PATHS` and `RUNTIME_JAVASCRIPT_PATHS` after `PH1-01`
   - [x] replace conflicting 27/29 CSS and 20 JavaScript claims with one consistent current contract, avoiding repeated fixed counts where the configuration can be referenced directly
   - [x] update page coverage to distinguish the six indexable routes from all twelve HTML documents, including the contact, legal, and utility pages
   - [x] align the responsive, SEO, PWA, and post-deployment checklist sections with the same route registry
