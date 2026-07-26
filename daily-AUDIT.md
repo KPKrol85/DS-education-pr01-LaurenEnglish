@@ -28,6 +28,8 @@ None detected.
 
 ### [P2-01] Runtime checklist contains obsolete route and request contracts
 
+**Status:** Resolved
+
 - **Classification:** Contract mismatch
 - **Evidence:** `docs/runtime-checklist.md:26`, `docs/runtime-checklist.md:54`, `docs/runtime-checklist.md:71`, `scripts/pwa-config.mjs:24`, `scripts/site-config.mjs:37`
 - **Current behavior:** The checklist alternately requires 29 or 27 CSS requests, consistently requires 20 JavaScript requests, describes five indexable routes, and expects eight published HTML pages. The executable configuration currently defines 29 CSS paths, 18 JavaScript paths, six indexable routes, and twelve total HTML pages.
@@ -36,6 +38,8 @@ None detected.
 
 ### [P2-02] README points image maintenance at derived fallbacks
 
+**Status:** Open
+
 - **Classification:** Contract mismatch
 - **Evidence:** `README.md:135`, `README.md:345`, `scripts/image-config.mjs:1`, `scripts/optimize-images.mjs:86`
 - **Current behavior:** Both README language sections state that no separate image source directory exists and describe the JPEG/PNG fallback as unchanged. The active pipeline reads canonical originals from `assets/image-sources/` and regenerates the public JPEG fallbacks together with AVIF and WebP variants.
@@ -43,6 +47,8 @@ None detected.
 - **Recommended direction:** Document `assets/image-sources/` as the editable source and `assets/img/` as generated public output for configured raster assets.
 
 ### [P2-03] Retired interaction branches remain in canonical source
+
+**Status:** Resolved
 
 - **Classification:** Maintenance risk
 - **Evidence:** `js/main.js:6`, `js/main.js:124`, `js/modules/contactForm.js:2`, `js/modules/progressTracker.js:1`
