@@ -27,12 +27,15 @@
 
 **Goal:** Remove obsolete interaction ownership from canonical JavaScript and synchronize the generated PWA contract without changing active form or progress behavior.
 
-- [ ] **PH1-01 — Remove retired interaction branches**
-  - [ ] remove the `contactForm.js` import and initializer from `js/main.js` while preserving the native required-field and Netlify Forms contract in `kontakt.html`
-  - [ ] delete the unused `js/modules/contactForm.js` and unreferenced `js/modules/progressTracker.js` modules without changing the active `js/pages/progress-page.js` flow
-  - [ ] remove `/js/modules/contactForm.js` from `RUNTIME_JAVASCRIPT_PATHS` in `scripts/pwa-config.mjs`
-  - [ ] regenerate `service-worker.js` through `npm run build:sw` and confirm that its precache graph contains neither retired module
-  - [ ] run `npm run lint:js`, `npm run check:content`, `npm run check:pwa`, and the focused `npm run test:e2e:interactions` browser suite
+- [ ] **PH1-01 — Remove retired interaction branches** — **Status:** Blocked
+  - [x] remove the `contactForm.js` import and initializer from `js/main.js` while preserving the native required-field and Netlify Forms contract in `kontakt.html`
+  - [x] delete the unused `js/modules/contactForm.js` and unreferenced `js/modules/progressTracker.js` modules without changing the active `js/pages/progress-page.js` flow
+  - [x] remove `/js/modules/contactForm.js` from `RUNTIME_JAVASCRIPT_PATHS` in `scripts/pwa-config.mjs`
+  - [x] regenerate `service-worker.js` through `npm run build:sw` and confirm that its precache graph contains neither retired module
+  - [x] run `npm run lint:js`, `npm run check:content`, and `npm run check:pwa`
+  - [ ] run the focused `npm run test:e2e:interactions` browser suite
+  - **Blocker:** Chromium could not launch in the current environment because `browserType.launch` returned `spawn EPERM`
+  - **Unblocks when:** the focused interaction suite launches Chromium and passes in an environment that permits the browser process
   - **Source:** `daily-AUDIT.md` — P2-03
   - **Completion condition:** canonical imports, initializers, modules, and PWA paths contain no retired interaction branch, while the contact form, active progress journal, and generated Service Worker contracts pass focused verification
 

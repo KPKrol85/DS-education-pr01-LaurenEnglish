@@ -3,7 +3,6 @@ import { initHeaderShrink } from "./modules/headerShrink.js";
 import { initMobileNav } from "./modules/mobileNav.js";
 import { initScrollSpy } from "./modules/scrollSpy.js";
 import { initAccordion } from "./modules/accordion.js";
-import { initContactForm } from "./modules/contactForm.js";
 import { initMaterialsCatalog } from "./modules/materialsCatalog.js";
 import { initAnchorFocus } from "./modules/anchorFocus.js";
 import { initProjectDisclosure } from "./modules/projectDisclosure.js";
@@ -121,7 +120,6 @@ const registerServiceWorker = () => {
   ["Anchor focus", initAnchorFocus],
   ["Project disclosure", initProjectDisclosure],
   ["Theme toggle", initThemeToggle],
-  ["Contact form", initContactForm],
   ["Progress page", initProgressPage],
   ["Service worker", registerServiceWorker],
 ].forEach(([name, initializer]) => runInitializer(name, initializer));
