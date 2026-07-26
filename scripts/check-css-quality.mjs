@@ -34,7 +34,6 @@ const expectedImports = [
   "utilities/utilities.css",
   "components/eyebrow.css",
   "components/cta-panel.css",
-  "components/project-disclosure.css",
   "components/buttons.css",
   "components/navigation.css",
   "components/cards.css",

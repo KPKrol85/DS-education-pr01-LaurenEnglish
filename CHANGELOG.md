@@ -10,6 +10,7 @@ All significant changes to this project are documented in this file.
 
 ### Removed
 
+- Removed the customer-facing Project Disclosure dialog and its obsolete runtime, storage, PWA, and shared-shell contracts.
 - Removed retired contact-form and progress-tracker branches from canonical JavaScript and the PWA precache graph.
 
 ### Documentation

@@ -95,6 +95,8 @@ None detected.
 
 ### [P1-02] Public project disclosure contradicts the authoritative product positioning
 
+**Status:** Resolved
+
 **Classification:** P1 — product positioning and public content contract
 
 **Affected area:** first-visit experience on indexable routes

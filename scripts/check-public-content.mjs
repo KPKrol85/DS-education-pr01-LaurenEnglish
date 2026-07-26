@@ -11,8 +11,8 @@ const APPROVED_CONTACT = FOOTER_CONTACT;
 
 const FORBIDDEN_PUBLIC_PATTERNS = Object.freeze([
   {
-    label: "developer or portfolio terminology",
-    pattern: /\b(?:demo|mockup|fake|prototype|prototyp)\b|sample project|test website|portfolio simulation/iu,
+    label: "developer, portfolio, or conceptual-project terminology",
+    pattern: /\b(?:demo|mockup|fake|prototype|prototyp|portfolio|simulation|demonstracyj\w*)\b|sample project|test website|portfolio simulation|projekt koncepcyjny|aktywną ofertą handlową/iu,
   },
   {
     label: "unsupported testimonial markup",

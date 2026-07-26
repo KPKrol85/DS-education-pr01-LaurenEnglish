@@ -43,7 +43,7 @@
 
 - Sprawdź wszystkie opublikowane dokumenty z `ALL_PAGES` przy szerokości desktopowej i mobilnej.
 - Potwierdź, że przy szerokościach 320, 390, 768, 1024 i 1440 px nagłówki Literata z polskimi znakami nie powodują nowych przesunięć, nakładania treści ani poziomego overflow.
-- Na pierwszej wizycie strony indeksowanej potwierdź informacyjny Project Disclosure Modal, fokus wewnątrz natywnego `dialog`, blokadę tła oraz zamknięcie wyłącznie przez „Przejdź do strony”. Strony prawne i techniczne nie mogą go automatycznie otwierać.
+- Na pierwszej wizycie strony indeksowanej potwierdź bezpośredni dostęp do treści bez blokującego dialogu oraz bez portfolio, koncepcyjnych, demonstracyjnych lub symulacyjnych komunikatów.
 
 ## Playwright E2E
 

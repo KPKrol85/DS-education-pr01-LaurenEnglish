@@ -5,7 +5,6 @@ import { initScrollSpy } from "./modules/scrollSpy.js";
 import { initAccordion } from "./modules/accordion.js";
 import { initMaterialsCatalog } from "./modules/materialsCatalog.js";
 import { initAnchorFocus } from "./modules/anchorFocus.js";
-import { initProjectDisclosure } from "./modules/projectDisclosure.js";
 import { initProgressPage } from "./pages/progress-page.js";
 import { readStoredValue, writeStoredValue } from "./state/browserStorage.js";
 
@@ -118,7 +117,6 @@ const registerServiceWorker = () => {
   ["Accordion", initAccordion],
   ["Materials catalogue", initMaterialsCatalog],
   ["Anchor focus", initAnchorFocus],
-  ["Project disclosure", initProjectDisclosure],
   ["Theme toggle", initThemeToggle],
   ["Progress page", initProgressPage],
   ["Service worker", registerServiceWorker],
