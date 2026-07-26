@@ -4,6 +4,10 @@ All significant changes to this project are documented in this file.
 
 ## [Unreleased]
 
+### Removed
+
+- Removed retired contact-form and progress-tracker branches from canonical JavaScript and the PWA precache graph.
+
 ## [1.0.0] - 2026-07-26
 
 ### Added
