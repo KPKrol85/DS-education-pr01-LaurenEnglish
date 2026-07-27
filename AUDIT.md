@@ -154,6 +154,8 @@ None detected.
 
 ### [P1-05] Development tooling contains high and critical dependency advisories
 
+**Status:** Partially resolved
+
 **Classification:** P1 — build and supply-chain security
 
 **Affected area:** local and CI development dependencies
