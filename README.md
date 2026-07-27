@@ -26,8 +26,8 @@ Każda trasa jest samodzielnym dokumentem HTML. Wspólny shell, metadane, treśc
 
 - **Runtime:** semantyczny HTML5, CSS, Vanilla JavaScript w natywnych modułach ES;
 - **CSS:** design tokens, BEM, układ mobile-first, PostCSS, `postcss-import`, cssnano;
-- **Build:** statyczne skrypty Node.js ESM, esbuild dla pomocniczego bundla JavaScript, imagemin dla obrazów;
-- **Development:** npm z `package-lock.json`, projektowy serwer Python 3 z live reload oraz `serve` do statycznego podglądu;
+- **Build:** statyczne skrypty Node.js ESM, esbuild dla pomocniczego bundla JavaScript i Sharp dla obrazów;
+- **Development:** npm z `package-lock.json` oraz projektowy serwer Python 3 z live reload do lokalnego podglądu;
 - **Jakość kodu:** ESLint, Prettier i projektowe walidatory HTML, treści, danych, CSS, SEO, PWA oraz workflow deweloperskiego;
 - **Testy przeglądarkowe:** Playwright w Chromium dla widoków desktopowych i mobilnych;
 - **Integracja hostingowa:** Netlify Forms i reguły `_redirects`.
@@ -104,7 +104,7 @@ npm run serve
 ### Dostępne skrypty
 
 - `npm run dev` — projektowy serwer Python z live reload na porcie `8181`;
-- `npm run serve` — statyczny podgląd katalogu głównego;
+- `npm run serve` — uruchamia lokalny podgląd przez projektowy serwer Python;
 - `npm run build` — składa HTML i generuje `service-worker.js`;
 - `npm run build:html` / `npm run check:html` — aktualizuje lub bez zapisu sprawdza regiony HTML oraz zasoby routingu;
 - `npm run build:sw` — waliduje precache i generuje Service Workera z deterministyczną rewizją cache;
@@ -234,8 +234,8 @@ Each route is a standalone HTML document. The shared shell, metadata, data-backe
 
 - **Runtime:** semantic HTML5, CSS, and Vanilla JavaScript using native ES modules;
 - **CSS:** design tokens, BEM, mobile-first layouts, PostCSS, `postcss-import`, and cssnano;
-- **Build:** static Node.js ESM scripts, esbuild for an auxiliary JavaScript bundle, and imagemin for images;
-- **Development:** npm with `package-lock.json`, a project-specific Python 3 live-reload server, and `serve` for static preview;
+- **Build:** static Node.js ESM scripts, esbuild for an auxiliary JavaScript bundle, and Sharp for images;
+- **Development:** npm with `package-lock.json` and a project-specific Python 3 live-reload server for local preview;
 - **Code quality:** ESLint, Prettier, and project validators for HTML, content, data, CSS, SEO, PWA, and the development workflow;
 - **Browser testing:** Playwright with Chromium desktop and mobile projects;
 - **Hosting integration:** Netlify Forms and `_redirects` rules.
@@ -312,7 +312,7 @@ npm run serve
 ### Available Scripts
 
 - `npm run dev` — starts the project Python live-reload server on port `8181`;
-- `npm run serve` — serves a static preview of the repository root;
+- `npm run serve` — starts a local preview through the project Python server;
 - `npm run build` — assembles HTML and generates `service-worker.js`;
 - `npm run build:html` / `npm run check:html` — updates or read-only checks HTML regions and routing assets;
 - `npm run build:sw` — validates the precache and generates the Service Worker with a deterministic cache revision;

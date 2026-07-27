@@ -2,8 +2,6 @@ import { copyFile, mkdir, readFile, stat, writeFile } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import imageminAvif from "imagemin-avif";
-import imageminWebp from "imagemin-webp";
 import sharp from "sharp";
 
 import {
@@ -22,13 +20,16 @@ const assert = (condition, message) => {
 
 const toFilePath = (publicPath) => resolve(ROOT, `.${publicPath}`);
 
-const createPlugin = (extension) => {
+const optimizeModernImage = (source, extension) => {
   if (extension === "avif") {
-    return imageminAvif({ quality: 60, speed: 4 });
+    return sharp(source).avif({ quality: 60, effort: 4 }).toBuffer();
   }
 
   if (extension === "webp") {
-    return imageminWebp({ quality: 82, method: 6, metadata: "all" });
+    return sharp(source)
+      .withMetadata()
+      .webp({ quality: 82, effort: 6 })
+      .toBuffer();
   }
 
   throw new Error(`Unsupported image format: ${extension}`);
@@ -97,7 +98,7 @@ const optimizeAsset = async (asset) => {
       const outputPath = toFilePath(
         getModernImagePath(asset.fallbackPath, extension),
       );
-      const data = await createPlugin(extension)(source);
+      const data = await optimizeModernImage(source, extension);
       assert(
         Buffer.isBuffer(data) || data instanceof Uint8Array,
         `Optimizer did not return ${extension.toUpperCase()} data for ${asset.fallbackPath}`,

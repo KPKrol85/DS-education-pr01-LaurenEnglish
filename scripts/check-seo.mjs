@@ -296,21 +296,6 @@ assert(
 );
 await readFile(resolve(ROOT, "404.html"));
 
-const serveConfig = JSON.parse(
-  await readFile(resolve(ROOT, "serve.json"), "utf8"),
-);
-assert(
-  serveConfig.cleanUrls === false,
-  "serve.json must preserve the documented .html route style",
-);
-assert(
-  serveConfig.rewrites?.some(
-    ({ source, destination }) =>
-      source === "/" && destination === "/index.html",
-  ),
-  "serve.json must map the canonical homepage route to index.html",
-);
-
 console.log(
   `Verified SEO policy for ${INDEXABLE_PAGES.length} indexable pages and ${UTILITY_PAGES.length} noindex utility pages: metadata, raster social image, JSON-LD, sitemap, robots, and 404 routing are consistent.`,
 );

@@ -8,7 +8,7 @@ import { chromium } from "@playwright/test";
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const BASE_URL = "http://127.0.0.1:4173";
 const OUTPUT_DIRECTORY = resolve(ROOT, "assets/pwa/screenshots");
-const SERVER_ENTRY = resolve(ROOT, "node_modules/serve/build/main.js");
+const SERVER_ENTRY = resolve(ROOT, "scripts/dev-server.py");
 
 const SCREENSHOTS = Object.freeze([
   {
@@ -47,8 +47,15 @@ const stopServer = async (server) => {
 const run = async () => {
   await mkdir(OUTPUT_DIRECTORY, { recursive: true });
   const server = spawn(
-    process.execPath,
-    [SERVER_ENTRY, ".", "-l", "4173", "--no-clipboard"],
+    "python",
+    [
+      SERVER_ENTRY,
+      "--port",
+      "4173",
+      "--no-browser",
+      "--no-live-reload",
+      "--skip-initial-build",
+    ],
     {
       cwd: ROOT,
       stdio: "ignore",

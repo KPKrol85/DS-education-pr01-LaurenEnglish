@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "dev": "python scripts/dev-server.py",
-    "serve": "serve .",
+    "serve": "python scripts/dev-server.py --no-browser --skip-initial-build",
     "check:data": "node scripts/check-content-data.mjs",
     "check:content": "node scripts/check-public-content.mjs",
     "check:css": "node scripts/check-css-quality.mjs && node scripts/check-css-contrast.mjs",
@@ -37,21 +37,16 @@
     "format": "prettier --write \"**/*.{html,css,js,mjs,md,json,webmanifest,xml}\""
   },
   "devDependencies": {
-    "@eslint/js": "^9.39.5",
+    "@eslint/js": "^10.0.1",
     "@playwright/test": "^1.61.1",
-    "concurrently": "^8.2.2",
     "cssnano": "^6.1.2",
     "esbuild": "^0.25.1",
-    "eslint": "^9.18.0",
+    "eslint": "^10.8.0",
     "globals": "^15.15.0",
-    "imagemin-avif": "^0.1.6",
-    "imagemin-cli": "^8.0.0",
-    "imagemin-webp": "^8.0.0",
     "postcss": "^8.4.38",
     "postcss-cli": "^11.0.0",
     "postcss-import": "^16.1.0",
     "prettier": "^3.2.5",
-    "serve": "^14.2.3",
-    "sharp": "^0.33.5"
+    "sharp": "^0.35.3"
   }
 }

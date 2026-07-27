@@ -28,7 +28,8 @@ export default defineConfig({
     navigationTimeout: 15_000,
   },
   webServer: {
-    command: "npx serve . --listen 4173",
+    command:
+      "python scripts/dev-server.py --port 4173 --no-browser --no-live-reload --skip-initial-build",
     url: `${BASE_URL}/index.html`,
     reuseExistingServer: true,
     timeout: 30_000,

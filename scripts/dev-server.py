@@ -254,9 +254,11 @@ class DevelopmentHttpServer(ThreadingHTTPServer):
         handler: type[SimpleHTTPRequestHandler],
         reload_state: ReloadState,
         stop_event: threading.Event,
+        live_reload: bool,
     ) -> None:
         self.reload_state = reload_state
         self.stop_event = stop_event
+        self.live_reload = live_reload
         super().__init__(server_address, handler)
 
     def handle_error(self, request: object, client_address: object) -> None:
@@ -317,20 +319,20 @@ class DevelopmentRequestHandler(SimpleHTTPRequestHandler):
 
     def do_GET(self) -> None:
         path = urlsplit(self.path).path
-        if path == f"{DEV_PREFIX}/client.js":
+        if self.development_server.live_reload and path == f"{DEV_PREFIX}/client.js":
             self._send_bytes(
                 LIVE_RELOAD_CLIENT.encode("utf-8"),
                 "text/javascript; charset=utf-8",
             )
             return
-        if path == f"{DEV_PREFIX}/status":
+        if self.development_server.live_reload and path == f"{DEV_PREFIX}/status":
             payload = json.dumps(
                 self.development_server.reload_state.status(),
                 ensure_ascii=False,
             ).encode("utf-8")
             self._send_bytes(payload, "application/json; charset=utf-8")
             return
-        if path == f"{DEV_PREFIX}/events":
+        if self.development_server.live_reload and path == f"{DEV_PREFIX}/events":
             self._send_events()
             return
         super().do_GET()
@@ -388,7 +390,7 @@ class DevelopmentRequestHandler(SimpleHTTPRequestHandler):
         except OSError:
             self.send_error(500, "Could not read the HTML document")
             return None
-        if LIVE_RELOAD_TAG not in html:
+        if self.development_server.live_reload and LIVE_RELOAD_TAG not in html:
             html = html.replace("</body>", f"  {LIVE_RELOAD_TAG}\n</body>", 1)
         payload = html.encode("utf-8")
         self.send_response(status)
@@ -411,6 +413,7 @@ def parse_arguments() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--port", type=int, default=DEFAULT_PORT)
     parser.add_argument("--no-browser", action="store_true")
+    parser.add_argument("--no-live-reload", action="store_true")
     parser.add_argument("--skip-initial-build", action="store_true")
     parser.add_argument("--check-port", action="store_true")
     parser.add_argument("--shutdown-on-stdin", action="store_true")
@@ -443,6 +446,7 @@ def main() -> int:
             DevelopmentRequestHandler,
             state,
             stop_event,
+            not arguments.no_live_reload,
         )
     except OSError:
         print(
