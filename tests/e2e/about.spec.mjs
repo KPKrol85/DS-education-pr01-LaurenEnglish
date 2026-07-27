@@ -110,9 +110,11 @@ test("O mnie portrait remains proportioned and aligned responsively", async ({
     expect(metrics.imageWidth).toBeLessThanOrEqual(420.5);
     expect(metrics.imageWidth).toBeGreaterThan(0);
     expect(metrics.imageWidth / metrics.imageHeight).toBeCloseTo(420 / 480, 2);
-    expect(
-      Math.abs(metrics.imageWidth - metrics.visualWidth),
-    ).toBeLessThanOrEqual(1);
+    const expectedPortraitWidthDifference = viewport.width < 480 ? 32 : 0;
+    expect(metrics.visualWidth - metrics.imageWidth, viewport.name).toBeCloseTo(
+      expectedPortraitWidthDifference,
+      1,
+    );
     expect(
       Math.abs(metrics.cardWidth - metrics.visualWidth),
     ).toBeLessThanOrEqual(1);

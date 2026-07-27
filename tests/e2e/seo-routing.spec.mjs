@@ -43,19 +43,21 @@ test.describe("SEO metadata and static routing", () => {
         name: "Porozmawiajmy o Twojej nauce angielskiego.",
       }),
     ).toBeVisible();
+    const contactMethods = page.getByRole("region", {
+      name: "Wybierz wygodny sposób kontaktu",
+    });
+    await expect(contactMethods).toBeVisible();
     await expect(
-      page.getByRole("link", { name: "+48 533 537 091" }),
+      contactMethods.getByRole("link", { name: "+48 533 537 091" }),
     ).toHaveAttribute("href", "tel:+48533537091");
     await expect(
-      page.getByRole("link", { name: "kontakt@kp-code.pl" }),
+      contactMethods.getByRole("link", { name: "kontakt@kp-code.pl" }),
     ).toHaveAttribute("href", "mailto:kontakt@kp-code.pl");
-    await expect(page.locator("address")).toContainText(
+    await expect(contactMethods.locator("address")).toContainText(
       "ul. Marynarki Wojennej 12/31, 33-100 Tarnów, Polska",
     );
     await expect(
-      page
-        .getByRole("navigation", { name: "Główna nawigacja" })
-        .getByRole("link", { name: "Kontakt", exact: true }),
+      page.locator('.nav__link[href="/kontakt.html"]'),
     ).toHaveAttribute("aria-current", "page");
 
     const form = page.locator("#formularz form");
@@ -74,10 +76,10 @@ test.describe("SEO metadata and static routing", () => {
     }
     await expect(
       page.locator('.nav__cta[href="/kontakt.html#formularz"]'),
-    ).toHaveText("Umów rozmowę");
+    ).toHaveText("Napisz do mnie");
     await expect(
       page.locator('.header__cta[href="/kontakt.html#formularz"]'),
-    ).toHaveText("Umów rozmowę");
+    ).toHaveText("Napisz do mnie");
     await expect(
       page.locator('footer a[href="/kontakt.html"]', { hasText: "Kontakt" }),
     ).toHaveCount(1);

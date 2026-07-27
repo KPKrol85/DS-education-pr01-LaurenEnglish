@@ -162,20 +162,32 @@ test("delivers configured AVIF and WebP content images through picture markup", 
   for (const { asset, pagePath, selector } of imageCases) {
     await page.goto(pagePath, { waitUntil: "networkidle" });
     const image = page.locator(selector);
-    const result = await image.evaluate((element) => ({
-      currentSrc: new URL(element.currentSrc).pathname,
-      height: element.naturalHeight,
-      sources: Array.from(
-        element.closest("picture").querySelectorAll("source"),
-      ).map((source) => ({
-        srcset: new URL(source.srcset).pathname,
-        type: source.type,
-      })),
-      width: element.naturalWidth,
-    }));
+    await image.scrollIntoViewIfNeeded();
+    await expect(image).toBeVisible();
+    await image.evaluate((element) => element.decode());
+    const result = await image.evaluate((element) => {
+      const getSrcsetPaths = (srcset) =>
+        srcset
+          .split(",")
+          .map((candidate) => candidate.trim().split(/\s+/u)[0])
+          .filter(Boolean)
+          .map((candidate) => new URL(candidate, document.baseURI).pathname);
+
+      return {
+        currentSrc: new URL(element.currentSrc, document.baseURI).pathname,
+        height: element.naturalHeight,
+        sources: Array.from(
+          element.closest("picture").querySelectorAll("source"),
+        ).map((source) => ({
+          srcsetPaths: getSrcsetPaths(source.srcset),
+          type: source.type,
+        })),
+        width: element.naturalWidth,
+      };
+    });
     const expectedSources = MODERN_IMAGE_FORMATS.map(
       ({ extension, mimeType }) => ({
-        srcset: getModernImagePath(asset.fallbackPath, extension),
+        srcsetPaths: [getModernImagePath(asset.fallbackPath, extension)],
         type: mimeType,
       }),
     );
@@ -189,9 +201,13 @@ test("delivers configured AVIF and WebP content images through picture markup", 
 
     const response = await page.request.get(result.currentSrc);
     expect(response.status()).toBe(200);
-    expect(response.headers()["content-type"]).toContain(
-      result.currentSrc.endsWith(".avif") ? "image/avif" : "image/webp",
+    const selectedSource = result.sources.find(({ srcsetPaths }) =>
+      srcsetPaths.includes(result.currentSrc),
     );
+    expect(selectedSource).toEqual({
+      srcsetPaths: [result.currentSrc],
+      type: result.currentSrc.endsWith(".avif") ? "image/avif" : "image/webp",
+    });
   }
 });
 

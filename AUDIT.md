@@ -113,6 +113,8 @@ None detected.
 
 ### [P1-03] The complete browser regression gate is not green
 
+**Status:** Partially resolved
+
 **Classification:** P1 — release verification reliability
 
 **Affected area:** Playwright end-to-end suite
