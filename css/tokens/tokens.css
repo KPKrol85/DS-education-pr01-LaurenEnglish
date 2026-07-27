@@ -76,6 +76,7 @@
   --z-header: 1000;
   --transition-fast: 160ms ease;
   --transition-base: 240ms ease;
+  --transition-discrete: 160ms step-start;
   --size-1px: 1px;
   --control-min-size: 44px;
   --brand-logo-size: 40px;

@@ -68,6 +68,70 @@ const getFooterContrastRatios = (page) =>
     });
   });
 
+const getFooterThemeContrastPhases = (page, theme) =>
+  page.evaluate(async (nextTheme) => {
+    const parseRgb = (value) =>
+      value
+        .match(/[\d.]+/gu)
+        .slice(0, 3)
+        .map(Number);
+    const luminance = (value) => {
+      const channels = parseRgb(value).map((channel) => {
+        const normalized = channel / 255;
+        return normalized <= 0.03928
+          ? normalized / 12.92
+          : ((normalized + 0.055) / 1.055) ** 2.4;
+      });
+      return 0.2126 * channels[0] + 0.7152 * channels[1] + 0.0722 * channels[2];
+    };
+    const contrast = (foreground, background) => {
+      const foregroundLuminance = luminance(foreground);
+      const backgroundLuminance = luminance(background);
+      return (
+        (Math.max(foregroundLuminance, backgroundLuminance) + 0.05) /
+        (Math.min(foregroundLuminance, backgroundLuminance) + 0.05)
+      );
+    };
+    const snapshot = () => {
+      const samples = [
+        [".footer__title", ".footer"],
+        [".footer__list a", ".footer"],
+        [".footer__social-link", ".footer"],
+        [".footer__bottom p", ".footer__bottom"],
+      ];
+
+      return samples.map(([textSelector, backgroundSelector]) => {
+        const text = document.querySelector(textSelector);
+        const background = document.querySelector(backgroundSelector);
+        if (!text || !background) return 0;
+        return contrast(
+          getComputedStyle(text).color,
+          getComputedStyle(background).backgroundColor,
+        );
+      });
+    };
+    const link = document.querySelector(".footer__list a");
+    const transitionEnd = new Promise((resolve) => {
+      link.addEventListener(
+        "transitionend",
+        (event) => {
+          if (event.propertyName === "color") resolve();
+        },
+        { once: true },
+      );
+    });
+
+    document.documentElement.dataset.theme = nextTheme;
+    const immediate = snapshot();
+    await new Promise((resolve) =>
+      requestAnimationFrame(() => requestAnimationFrame(resolve)),
+    );
+    const intermediate = snapshot();
+    await transitionEnd;
+
+    return { immediate, intermediate, settled: snapshot() };
+  }, theme);
+
 test("shared footer exposes the approved responsive, legal, and social contract", async ({
   page,
   request,
@@ -305,32 +369,41 @@ test("shared footer exposes the approved responsive, legal, and social contract"
       expect(brandLayout.blockWidth).toBeLessThan(brandLayout.columnWidth);
     }
 
-    for (const theme of ["light", "dark"]) {
-      await page.locator("html").evaluate((element, nextTheme) => {
-        element.dataset.theme = nextTheme;
-      }, theme);
-      const contrastRatios = await getFooterContrastRatios(page);
+    const lightContrastRatios = await getFooterContrastRatios(page);
+    expect(
+      Math.min(...lightContrastRatios),
+      `${viewport.name} light footer contrast`,
+    ).toBeGreaterThanOrEqual(4.5);
+
+    const darkContrastPhases = await getFooterThemeContrastPhases(page, "dark");
+    for (const [phase, contrastRatios] of Object.entries(darkContrastPhases)) {
       expect(
         Math.min(...contrastRatios),
-        `${viewport.name} ${theme} footer contrast`,
+        `${viewport.name} dark ${phase} footer contrast`,
       ).toBeGreaterThanOrEqual(4.5);
-
-      const iconColors = await footer
-        .locator(".footer__social-link")
-        .evaluateAll((links) =>
-          links.map((link) => {
-            const icon = link.querySelector(".footer__social-icon");
-            return {
-              icon: getComputedStyle(icon).fill,
-              link: getComputedStyle(link).color,
-            };
-          }),
-        );
-      expect(iconColors.every(({ icon, link }) => icon === link)).toBe(true);
     }
 
+    const iconColors = await footer
+      .locator(".footer__social-link")
+      .evaluateAll((links) =>
+        links.map((link) => {
+          const icon = link.querySelector(".footer__social-icon");
+          return {
+            icon: getComputedStyle(icon).fill,
+            link: getComputedStyle(link).color,
+          };
+        }),
+      );
+    expect(iconColors.every(({ icon, link }) => icon === link)).toBe(true);
+
     const firstSocialLink = footer.locator(".footer__social-link").first();
+    const defaultSocialColor = await firstSocialLink.evaluate(
+      (link) => getComputedStyle(link).color,
+    );
     await firstSocialLink.hover();
+    expect(
+      await firstSocialLink.evaluate((link) => getComputedStyle(link).color),
+    ).not.toBe(defaultSocialColor);
     expect(
       await firstSocialLink.evaluate(
         (link) => getComputedStyle(link).transform !== "none",

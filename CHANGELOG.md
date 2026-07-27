@@ -7,6 +7,7 @@ All significant changes to this project are documented in this file.
 ### Fixed
 
 - Retained exactly fourteen valid local progress-journal days and rejected impossible or future stored dates.
+- Preserved compliant footer text and icon contrast throughout theme changes.
 
 ### Removed
 

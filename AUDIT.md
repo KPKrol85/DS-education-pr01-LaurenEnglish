@@ -136,6 +136,8 @@ None detected.
 
 ### [P1-04] Dark-theme switching creates a transient low-contrast footer state
 
+**Status:** Resolved
+
 **Classification:** P1 — accessibility and theme behavior
 
 **Affected area:** footer links and social controls
