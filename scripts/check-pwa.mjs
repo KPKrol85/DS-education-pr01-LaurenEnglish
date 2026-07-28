@@ -52,8 +52,20 @@ const fontAssetKey = ({ family, style, weight, unicodeRange }) =>
 
 const LITERATA_FONT_SHA256 =
   "DACE38D75534603D7B2E727E3A5979B6C53BEDB9DB9E14D4263EF92CFCB5F3D3";
-const LITERATA_LICENSE_SHA256 =
-  "5B52638039D9F63FE82BAB2CCEA1CF0312D275C49E6F1CF7E36361C256B4CE92";
+const PINNED_FONT_LICENSES = Object.freeze({
+  "OFL-Inter.txt":
+    "262481E844521B326F5ECD053E59B98C8B2DA78C8EE1BDBB6E8174305E54935A",
+  "OFL-Literata.txt":
+    "5B52638039D9F63FE82BAB2CCEA1CF0312D275C49E6F1CF7E36361C256B4CE92",
+});
+const DISTRIBUTED_FONT_LICENSES = Object.freeze({
+  "inter-400.woff2": "OFL-Inter.txt",
+  "inter-500.woff2": "OFL-Inter.txt",
+  "inter-600.woff2": "OFL-Inter.txt",
+  "inter-700.woff2": "OFL-Inter.txt",
+  "inter-latin-ext.woff2": "OFL-Inter.txt",
+  "literata-700.woff2": "OFL-Literata.txt",
+});
 
 const getAttribute = (tag, name) =>
   tag.match(new RegExp(`\\b${name}="([^"]*)"`, "i"))?.[1] ?? null;
@@ -225,6 +237,62 @@ const getCssFiles = async (directory) => {
     if (entry.isFile() && entry.name.endsWith(".css")) files.push(entryPath);
   }
   return files;
+};
+
+const verifyFontLicenseCoverage = async () => {
+  const fontDirectory = resolve(ROOT, "assets/fonts");
+  const distributedFontFiles = (await readdir(fontDirectory, {
+    withFileTypes: true,
+  }))
+    .filter((entry) => entry.isFile() && extname(entry.name) === ".woff2")
+    .map(({ name }) => name)
+    .sort();
+  const mappedFontFiles = Object.keys(DISTRIBUTED_FONT_LICENSES).sort();
+  const unmappedFontFiles = distributedFontFiles.filter(
+    (name) => !DISTRIBUTED_FONT_LICENSES[name],
+  );
+  const missingFontFiles = mappedFontFiles.filter(
+    (name) => !distributedFontFiles.includes(name),
+  );
+
+  assert(
+    unmappedFontFiles.length === 0,
+    `Distributed font assets lack license evidence: ${unmappedFontFiles.join(", ")}`,
+  );
+  assert(
+    missingFontFiles.length === 0,
+    `Font-license mapping references missing assets: ${missingFontFiles.join(", ")}`,
+  );
+
+  const mappedLicenseFiles = [
+    ...new Set(Object.values(DISTRIBUTED_FONT_LICENSES)),
+  ].sort();
+  assert(
+    mappedLicenseFiles.join(",") ===
+      Object.keys(PINNED_FONT_LICENSES).sort().join(","),
+    "Pinned font-license artifacts must exactly match distributed font evidence",
+  );
+
+  for (const licenseFile of mappedLicenseFiles) {
+    const coveredFontFiles = mappedFontFiles.filter(
+      (fontFile) => DISTRIBUTED_FONT_LICENSES[fontFile] === licenseFile,
+    );
+    let licenseBuffer;
+    try {
+      licenseBuffer = await readFile(resolve(fontDirectory, licenseFile));
+    } catch (error) {
+      if (error.code === "ENOENT") {
+        throw new Error(
+          `${licenseFile} is required by font-license mapping for ${coveredFontFiles.join(", ")}`,
+        );
+      }
+      throw error;
+    }
+    assert(
+      sha256(licenseBuffer) === PINNED_FONT_LICENSES[licenseFile],
+      `${licenseFile} must match the pinned official upstream license`,
+    );
+  }
 };
 
 const resolveRuntimeImport = (importer, specifier, label) => {
@@ -653,14 +721,6 @@ const verifyHeroAndFonts = async () => {
     "Production typography must deliver only the justified Literata 700 face",
   );
 
-  const literataLicense = await readFile(
-    resolve(ROOT, "assets/fonts/OFL-Literata.txt"),
-  );
-  assert(
-    sha256(literataLicense) === LITERATA_LICENSE_SHA256,
-    "Literata license must match the pinned official upstream OFL",
-  );
-
   const cssFiles = await getCssFiles(resolve(ROOT, "css"));
   const sourceCss = (
     await Promise.all(cssFiles.map((file) => readText(file)))
@@ -772,6 +832,7 @@ const run = async () => {
     verifyHeroAndFonts(),
     verifyProductionAssetContract(),
     verifyRuntimeAssetGraphs(),
+    verifyFontLicenseCoverage(),
   ]);
 
   assert(

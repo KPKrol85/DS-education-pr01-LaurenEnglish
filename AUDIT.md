@@ -174,19 +174,23 @@ None detected.
 
 ### [P1-06] Distributed Inter fonts lack repository-visible license evidence
 
+**Status:** Resolved
+
 **Classification:** P1 — third-party license compliance
 
 **Affected area:** local font assets and attribution
 
 **Evidence:** Inter files are shipped from `assets/fonts/` and registered in `scripts/pwa-config.mjs:76-119`. The repository contains only `assets/fonts/OFL-Literata.txt`. README attribution covers Literata and Font Awesome but not Inter (`README.md:208-211`, `README.md:418-421`), while `LICENSE.md:176-205` and `LICENSE.md:489-518` state that third-party materials remain subject to their own terms.
 
-**Current behavior:** Inter is distributed without a checked-in Inter-specific license or notice and without corresponding README attribution.
+**Current behavior:** Inter is distributed with the official upstream OFL 1.1 notice, equivalent Polish and English README attribution, and validator-enforced licensing evidence for every font file under `assets/fonts/`.
 
 **Impact:** The repository does not preserve complete licensing evidence for all distributed third-party font files, creating avoidable compliance and redistribution ambiguity.
 
 **Recommended direction:** Add the applicable official Inter license/notice, identify the font and source in both README language sections, and extend the existing license validation pattern to cover it.
 
 **Verification criteria:** The exact applicable upstream license or notice is tracked, bilingual attribution is equivalent, the validator checks the pinned text, and no font file lacks identified licensing evidence.
+
+**Resolution evidence:** Embedded metadata identifies the Inter files as version 4.001 from the official `rsms/inter` project at revision `66647c0bb` under the SIL Open Font License 1.1. The exact upstream notice is tracked as `assets/fonts/OFL-Inter.txt`; both README language sections identify its provenance and license; the centralized validator mapping covers all five Inter WOFF2 files and the Literata WOFF2 file, pins both OFL artifacts by SHA-256, and reports missing assets or notices explicitly. Focused `npm run check:pwa` verification passed.
 
 ## 6. P2 — Minor refinements
 

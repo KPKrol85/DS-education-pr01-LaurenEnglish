@@ -205,6 +205,7 @@ Pełne warunki, w których polska wersja jest rozstrzygająca, zawiera [LICENSE.
 
 ### Atrybucje
 
+- Font Inter 4.001 pochodzi z oficjalnego projektu [rsms/inter](https://github.com/rsms/inter) w rewizji [`66647c0bb`](https://github.com/rsms/inter/commit/66647c0bb) i jest dołączony na licencji SIL Open Font License 1.1; tekst licencji znajduje się w [assets/fonts/OFL-Inter.txt](assets/fonts/OFL-Inter.txt).
 - Font Literata jest dołączony na licencji SIL Open Font License 1.1; tekst licencji znajduje się w [assets/fonts/OFL-Literata.txt](assets/fonts/OFL-Literata.txt).
 - Wykorzystane inline SVG pochodzą z Font Awesome Free v7.3.1. Oryginalne komentarze licencyjne są zachowane przy ikonach, zgodnie z [warunkami Font Awesome Free](https://fontawesome.com/license/free).
 
@@ -413,5 +414,6 @@ Full terms, with the Polish version prevailing, are available in [LICENSE.md](LI
 
 ### Attributions
 
+- Inter 4.001 comes from the official [rsms/inter](https://github.com/rsms/inter) project at revision [`66647c0bb`](https://github.com/rsms/inter/commit/66647c0bb) and is included under the SIL Open Font License 1.1; the license text is available in [assets/fonts/OFL-Inter.txt](assets/fonts/OFL-Inter.txt).
 - Literata is included under the SIL Open Font License 1.1; the license text is available in [assets/fonts/OFL-Literata.txt](assets/fonts/OFL-Literata.txt).
 - Inline SVGs are sourced from Font Awesome Free v7.3.1. Original license comments are preserved next to the icons in accordance with the [Font Awesome Free terms](https://fontawesome.com/license/free).
