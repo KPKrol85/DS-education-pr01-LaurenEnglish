@@ -92,9 +92,9 @@ html[data-theme="dark"] {
     scroll-behavior: auto;
   }
 
-  *,
-  *::before,
-  *::after {
+  *:not(.theme-toggle__icon),
+  *:not(.theme-toggle__icon)::before,
+  *:not(.theme-toggle__icon)::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-delay: 0ms !important;

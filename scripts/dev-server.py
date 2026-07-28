@@ -13,6 +13,7 @@ import sys
 import threading
 import time
 import webbrowser
+from email.utils import formatdate
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import urlsplit
@@ -337,6 +338,80 @@ class DevelopmentRequestHandler(SimpleHTTPRequestHandler):
             return
         super().do_GET()
 
+    def copyfile(self, source: object, outputfile: object) -> None:
+        remaining = getattr(self, "_range_remaining", None)
+        if remaining is None:
+            super().copyfile(source, outputfile)
+            return
+
+        while remaining > 0:
+            chunk = source.read(min(64 * 1024, remaining))
+            if not chunk:
+                break
+            outputfile.write(chunk)
+            remaining -= len(chunk)
+
+    def _get_byte_range(self, file_size: int) -> tuple[int, int] | bool | None:
+        range_header = self.headers.get("Range")
+        if range_header is None:
+            return None
+
+        unit, separator, value = range_header.partition("=")
+        if unit.strip().lower() != "bytes" or not separator or "," in value:
+            return False
+
+        start_text, dash, end_text = value.strip().partition("-")
+        if not dash:
+            return False
+
+        try:
+            if start_text:
+                start = int(start_text)
+                end = int(end_text) if end_text else file_size - 1
+                if start < 0 or end < start or start >= file_size:
+                    return False
+                return start, min(end, file_size - 1)
+
+            suffix_length = int(end_text)
+            if suffix_length <= 0 or file_size == 0:
+                return False
+            return max(file_size - suffix_length, 0), file_size - 1
+        except ValueError:
+            return False
+
+    def _open_static_file(self, path: Path) -> object | None:
+        try:
+            source = path.open("rb")
+            file_stat = path.stat()
+        except OSError:
+            self.send_error(404, "File not found")
+            return None
+
+        byte_range = self._get_byte_range(file_stat.st_size)
+        if byte_range is False:
+            source.close()
+            self.send_response(416)
+            self.send_header("Content-Range", f"bytes */{file_stat.st_size}")
+            self.send_header("Content-Length", "0")
+            self.end_headers()
+            return None
+
+        self.send_response(206 if byte_range else 200)
+        self.send_header("Content-Type", self.guess_type(str(path)))
+        self.send_header("Accept-Ranges", "bytes")
+        self.send_header("Last-Modified", formatdate(file_stat.st_mtime, usegmt=True))
+        if byte_range:
+            start, end = byte_range
+            content_length = end - start + 1
+            source.seek(start)
+            self._range_remaining = content_length
+            self.send_header("Content-Range", f"bytes {start}-{end}/{file_stat.st_size}")
+        else:
+            content_length = file_stat.st_size
+        self.send_header("Content-Length", str(content_length))
+        self.end_headers()
+        return source
+
     def _send_bytes(
         self, payload: bytes, content_type: str, status: int = 200
     ) -> None:
@@ -373,11 +448,14 @@ class DevelopmentRequestHandler(SimpleHTTPRequestHandler):
             return
 
     def send_head(self) -> io.BytesIO | object | None:
+        self._range_remaining = None
         translated = Path(self.translate_path(self.path))
         if translated.is_dir():
             translated = translated / "index.html"
         if translated.is_file() and translated.suffix.lower() == ".html":
             return self._open_html(translated, 200)
+        if translated.is_file():
+            return self._open_static_file(translated)
         if not translated.exists():
             not_found = ROOT / "404.html"
             if not_found.is_file():

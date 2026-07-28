@@ -154,7 +154,7 @@ None detected.
 
 ### [P1-05] Development tooling contains high and critical dependency advisories
 
-**Status:** Partially resolved
+**Status:** Resolved
 
 **Classification:** P1 — build and supply-chain security
 
@@ -162,13 +162,15 @@ None detected.
 
 **Evidence:** All packages are development dependencies in `package.json:39-55`. On the audit date, `npm audit --audit-level=high --ignore-scripts` reported 45 vulnerabilities: 7 moderate, 26 high, and 12 critical. The affected graph includes the image toolchain declared at `package.json:47-49,55`, as well as transitive packages used by linting and the local server. `npm audit --omit=dev` reported 0 vulnerabilities.
 
-**Current behavior:** The browser-delivered application has no production dependency advisory, but installation and execution of repository tooling expose developers and CI to known vulnerable packages, including archive extraction, resource exhaustion, ReDoS, redirect, parser, and image-processing advisories.
+**Current behavior:** The audit-date exposure has been remediated. Obsolete and vulnerable development tools were removed or replaced, image processing was migrated to Sharp, ESLint and related tooling were updated, and development and production dependency audits now report zero advisories.
 
 **Impact:** Malformed or untrusted build inputs and compromised development workflows have a larger attack surface. A blind forced audit fix would also introduce breaking dependency changes.
 
 **Recommended direction:** Review and update or replace the obsolete image-processing chain, remove unused direct tools, apply safe patched upgrades, and document any advisory that must remain. Do not use an unreviewed forced upgrade as the acceptance criterion.
 
 **Verification criteria:** A clean install from the committed lockfile succeeds; `npm audit` reports no unaccepted high or critical advisories; image generation, linting, static checks, and the complete browser suite pass after the reviewed dependency changes.
+
+**Resolution evidence:** A clean install from the committed lockfile succeeded; development and production dependency audits report zero advisories; image generation, linting, and relevant static project checks passed; focused PWA verification passed with 10 passed and 0 failed; focused theme verification passed with 6 passed and 0 failed; and the complete browser suite passed with 67 passed, 9 skipped, 0 failed, and 0 flaky.
 
 ### [P1-06] Distributed Inter fonts lack repository-visible license evidence
 

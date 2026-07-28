@@ -34,6 +34,7 @@ test.use({ serviceWorkers: "allow" });
 const { cacheName: CURRENT_CACHE_NAME } = await createServiceWorkerBuild();
 const OLD_PROJECT_CACHE = `${CACHE_PREFIX}0.9.0-obsolete`;
 const UNRELATED_CACHE = "unrelated-application-sentinel";
+const UNSUCCESSFUL_POST_STATUSES = Object.freeze([404, 405, 501]);
 
 const registerAndControl = async (page) => {
   const registrationState = await page.evaluate(async () => {
@@ -358,11 +359,29 @@ test("keeps online routing real and never stores failed or partial responses", a
   }, failedAssetPath);
   expect(failedAssetStatus).toBe(404);
 
-  const postStatus = await page.evaluate(async () => {
-    const response = await fetch("/pwa-post-probe", { method: "POST" });
-    return response.status;
-  });
-  expect(postStatus).toBeGreaterThanOrEqual(400);
+  const postPath = "/pwa-post-probe";
+  const postResponsePromise = page.waitForResponse(
+    (response) =>
+      new URL(response.url()).pathname === postPath &&
+      response.request().method() === "POST",
+  );
+  const postResult = await page.evaluate(
+    async ({ cacheName, path }) => {
+      const cache = await caches.open(cacheName);
+      await cache.delete(path);
+      const response = await fetch(path, { method: "POST" });
+      return {
+        cachedAfterPost: Boolean(await cache.match(path)),
+        status: response.status,
+      };
+    },
+    { cacheName: CURRENT_CACHE_NAME, path: postPath },
+  );
+  const postResponse = await postResponsePromise;
+  expect(UNSUCCESSFUL_POST_STATUSES).toContain(postResult.status);
+  expect(postResult.cachedAfterPost).toBe(false);
+  expect(postResponse.status()).toBe(postResult.status);
+  expect(postResponse.fromServiceWorker()).toBe(false);
 
   const partialPath = MANIFEST_ICON_PATHS[0];
   const partialResult = await page.evaluate(
@@ -409,20 +428,15 @@ test("keeps online routing real and never stores failed or partial responses", a
     failedAssetCached: false,
     unknownRouteCached: false,
   });
-  expect(diagnostics.consoleErrors).toHaveLength(3);
-  for (const message of diagnostics.consoleErrors) {
-    expect(message).toBe(
-      "Failed to load resource: the server responded with a status of 404 (Not Found)",
-    );
-  }
+  const expectedHttpErrors = [
+    `404 http://127.0.0.1:4173${unknownPath}`,
+    `404 http://127.0.0.1:4173${failedAssetPath}`,
+    `${postResult.status} http://127.0.0.1:4173${postPath}`,
+  ].sort();
+  expect(diagnostics.consoleErrors).toHaveLength(expectedHttpErrors.length);
   expect(diagnostics.pageErrors).toEqual([]);
   expect(diagnostics.requestFailures).toEqual([]);
-  expect(diagnostics.httpErrors).toEqual(
-    expect.arrayContaining([
-      expect.stringContaining(`404 http://127.0.0.1:4173${unknownPath}`),
-      expect.stringContaining(`404 http://127.0.0.1:4173${failedAssetPath}`),
-    ]),
-  );
+  expect([...diagnostics.httpErrors].sort()).toEqual(expectedHttpErrors);
 });
 
 test("serves exact primary documents offline and uses offline.html for unknown navigation", async ({
