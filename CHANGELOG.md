@@ -6,6 +6,7 @@ All significant changes to this project are documented in this file.
 
 ### Fixed
 
+- Defined the canonical relaxed line-height contract and added unresolved custom-property validation with focused light and dark theme coverage.
 - Retained exactly fourteen valid local progress-journal days and rejected impossible or future stored dates.
 - Preserved compliant footer text and icon contrast throughout theme changes.
 - Completed development dependency remediation with a clean install, zero-advisory audits, passed image and static validation, focused PWA and theme verification, and complete browser verification with 67 passed, 9 skipped, 0 failed, and 0 flaky.

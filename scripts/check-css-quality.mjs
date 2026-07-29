@@ -9,6 +9,104 @@ const assert = (condition, message) => {
   if (!condition) throw new Error(message);
 };
 
+const maskCssCommentsAndStrings = (source) => {
+  const masked = source.split("");
+
+  for (let index = 0; index < source.length; index += 1) {
+    if (source.startsWith("/*", index)) {
+      masked[index] = " ";
+      masked[index + 1] = " ";
+      index += 2;
+      while (index < source.length && !source.startsWith("*/", index)) {
+        if (source[index] !== "\n") masked[index] = " ";
+        index += 1;
+      }
+      if (index < source.length) {
+        masked[index] = " ";
+        masked[index + 1] = " ";
+        index += 1;
+      }
+      continue;
+    }
+
+    if (source[index] !== '"' && source[index] !== "'") continue;
+    const quote = source[index];
+    masked[index] = " ";
+    index += 1;
+    while (index < source.length) {
+      if (source[index] === "\\") {
+        masked[index] = " ";
+        if (index + 1 < source.length && source[index + 1] !== "\n") {
+          masked[index + 1] = " ";
+        }
+        index += 2;
+        continue;
+      }
+      if (source[index] === quote) {
+        masked[index] = " ";
+        break;
+      }
+      if (source[index] !== "\n") masked[index] = " ";
+      index += 1;
+    }
+  }
+
+  return masked.join("");
+};
+
+const collectVarReferences = (source) => {
+  const maskedSource = maskCssCommentsAndStrings(source);
+  const references = [];
+
+  for (let index = 0; index < maskedSource.length; index += 1) {
+    const previousCharacter = maskedSource[index - 1] ?? "";
+    if (
+      /[A-Za-z0-9_-]/u.test(previousCharacter) ||
+      maskedSource.slice(index, index + 4).toLowerCase() !== "var("
+    ) {
+      continue;
+    }
+
+    let depth = 1;
+    let fallbackIndex = -1;
+    let closingIndex = -1;
+    for (let cursor = index + 4; cursor < maskedSource.length; cursor += 1) {
+      if (maskedSource[cursor] === "(") depth += 1;
+      if (maskedSource[cursor] === ")") {
+        depth -= 1;
+        if (depth === 0) {
+          closingIndex = cursor;
+          break;
+        }
+      }
+      if (
+        maskedSource[cursor] === "," &&
+        depth === 1 &&
+        fallbackIndex === -1
+      ) {
+        fallbackIndex = cursor;
+      }
+    }
+    if (closingIndex === -1) continue;
+
+    const propertyName = maskedSource
+      .slice(
+        index + 4,
+        fallbackIndex === -1 ? closingIndex : fallbackIndex,
+      )
+      .trim();
+    if (/^--[A-Za-z0-9_-]+$/u.test(propertyName)) {
+      references.push({
+        hasFallback: fallbackIndex !== -1,
+        index,
+        propertyName,
+      });
+    }
+  }
+
+  return references;
+};
+
 const collectCssFiles = async (directory) => {
   const entries = await readdir(directory, { withFileTypes: true });
   const files = await Promise.all(
@@ -26,6 +124,12 @@ for (const file of cssFiles) {
   const key = relative(CSS_ROOT, file).replaceAll("\\", "/");
   sources.set(key, await readFile(file, "utf8"));
 }
+const maskedSources = new Map(
+  [...sources].map(([file, source]) => [
+    file,
+    maskCssCommentsAndStrings(source),
+  ]),
+);
 
 const expectedImports = [
   "tokens/tokens.css",
@@ -63,6 +167,39 @@ const actualImports = [...styleSource.matchAll(/@import\s+"([^"]+)"/gu)].map(
 assert(
   JSON.stringify(actualImports) === JSON.stringify(expectedImports),
   "css/style.css import order must remain tokens → base → utilities → components → sections → pages",
+);
+
+const declaredCustomProperties = new Set();
+for (const maskedSource of maskedSources.values()) {
+  for (const match of maskedSource.matchAll(
+    /(?:^|[;{])\s*(--[A-Za-z0-9_-]+)\s*:/gmu,
+  )) {
+    declaredCustomProperties.add(match[1]);
+  }
+  for (const match of maskedSource.matchAll(
+    /@property\s+(--[A-Za-z0-9_-]+)\s*\{/gmu,
+  )) {
+    declaredCustomProperties.add(match[1]);
+  }
+}
+
+const unresolvedCustomProperties = [];
+for (const [file, source] of sources) {
+  for (const reference of collectVarReferences(source)) {
+    if (
+      declaredCustomProperties.has(reference.propertyName) ||
+      reference.hasFallback
+    ) {
+      continue;
+    }
+    unresolvedCustomProperties.push(
+      `${file}:${source.slice(0, reference.index).split("\n").length}: var(${reference.propertyName}) has no project declaration or fallback`,
+    );
+  }
+}
+assert(
+  unresolvedCustomProperties.length === 0,
+  `Unresolved custom-property references:\n${unresolvedCustomProperties.join("\n")}`,
 );
 
 const tokensSource = sources.get("tokens/tokens.css");
@@ -158,5 +295,5 @@ assert(
 );
 
 console.log(
-  `Verified ${cssFiles.length} canonical CSS files: layer order, ${themeTokens.length} dual-theme semantic tokens, zero raw colors, no ID selectors, consolidated utilities, documented placeholders, and contextual-selector cleanup.`,
+  `Verified ${cssFiles.length} canonical CSS files: layer order, ${themeTokens.length} dual-theme semantic tokens, ${declaredCustomProperties.size} declared custom properties with no unresolved references, zero raw colors, no ID selectors, consolidated utilities, documented placeholders, and contextual-selector cleanup.`,
 );

@@ -33,6 +33,7 @@
   /* Typography */
   --font-family-heading: "Literata", serif;
   --font-family-body: "Inter", sans-serif;
+  --line-height-relaxed: 1.6;
 
   /* Radius */
   --radius-sm: 10px;

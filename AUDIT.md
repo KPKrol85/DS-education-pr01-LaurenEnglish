@@ -196,19 +196,23 @@ None detected.
 
 ### [P2-01] Two declarations use an undefined line-height token
 
+**Status:** Resolved
+
 **Classification:** P2 — CSS consistency
 
 **Affected area:** CTA panel and material access description typography
 
 **Evidence:** `css/components/cta-panel.css:24-30` and `css/sections/resources.css:209-213` use `var(--line-height-relaxed)`. No matching custom property exists in `css/tokens/tokens.css:1-116`, and the current CSS validator does not detect undefined custom-property references.
 
-**Current behavior:** Browsers discard both invalid `line-height` declarations and use inherited values instead.
+**Current behavior:** Both descriptions resolve the canonical unitless `--line-height-relaxed: 1.6` contract in light and dark themes, and the CSS validator rejects unresolved custom-property references without a fallback.
 
 **Impact:** The intended relaxed text rhythm is not guaranteed and can drift when parent typography changes.
 
 **Recommended direction:** Define one justified semantic line-height token or replace both references with an existing canonical value, then validate unresolved custom properties.
 
 **Verification criteria:** Computed line height matches the documented token on both components in both themes, and a static check fails on future undefined custom-property references.
+
+**Resolution evidence:** `css/tokens/tokens.css` defines the shared relaxed line-height token used by both affected declarations. The canonical CSS validator collects project-owned custom-property declarations, supports valid and nested fallbacks, and reports unresolved references with their property, file, and line. `npm run check:css` passed with 74 declared custom properties and no unresolved references, and focused Chromium verification passed with 1 test covering both descriptions in light and dark themes.
 
 ### [P2-02] The tracked auxiliary JavaScript bundle is stale
 
