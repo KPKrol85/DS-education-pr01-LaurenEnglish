@@ -216,19 +216,23 @@ None detected.
 
 ### [P2-02] The tracked auxiliary JavaScript bundle is stale
 
+**Status:** Resolved
+
 **Classification:** P2 — generated artifact maintenance
 
 **Affected area:** `assets/build/main.min.js`
 
-**Evidence:** `assets/build/main.min.js:1` still contains retired `data-contact-form`, `data-tablist`, and `resources-tab-*` branches. The current entrypoint does not import those branches (`js/main.js:1-10,113-125`), and the canonical runtime and precache correctly exclude `assets/build/` (`README.md:129-131,181-183`, `scripts/pwa-config.mjs:56-74`).
+**Evidence:** The previous `assets/build/main.min.js:1` contained retired `data-contact-form`, `data-tablist`, and `resources-tab-*` branches. The current entrypoint does not import those branches (`js/main.js:1-9,113-125`), and the canonical runtime and precache correctly exclude `assets/build/` (`README.md:129-131,181-183`, `scripts/pwa-config.mjs:56-74`).
 
-**Current behavior:** The stale bundle is tracked and documented as an explicitly generated auxiliary output, but it no longer represents the current source graph.
+**Current behavior:** The tracked auxiliary bundle represents the current canonical JavaScript source graph and remains outside the active runtime and precache.
 
 **Impact:** It does not affect current application behavior, yet it can mislead maintenance work or a future switch to bundled delivery.
 
 **Recommended direction:** Regenerate it through the declared `build:js` command, or stop tracking it if auxiliary outputs are not required as versioned artifacts.
 
 **Verification criteria:** The tracked bundle contains no retired hooks, matches the current entrypoint, remains outside HTML requests and precache, and is changed only through its generator.
+
+**Resolution evidence:** `assets/build/main.min.js` was regenerated from `js/main.js` through the declared `npm run build:js` generator. Focused static verification confirmed that the canonical graph and generated output contain none of the retired hooks, all HTML documents continue to request `/js/main.js`, and the PWA configuration and generated Service Worker continue to exclude `assets/build/`.
 
 ### [P2-03] Missing canonical images can be silently recreated from lossy output
 
