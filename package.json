@@ -33,6 +33,8 @@
     "build:pwa-screenshots": "node scripts/capture-pwa-screenshots.mjs",
     "build": "npm run build:html && npm run build:sw",
     "images": "node scripts/optimize-images.mjs",
+    "check:images": "node scripts/optimize-images.mjs --check",
+    "test:images": "node --test tests/image-pipeline.test.mjs",
     "lint:js": "eslint .",
     "format": "prettier --write \"**/*.{html,css,js,mjs,md,json,webmanifest,xml}\""
   },

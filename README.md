@@ -118,6 +118,7 @@ npm run serve
 - `npm run build:css` / `npm run build:js` — odświeża pomocnicze pliki w `assets/build/`;
 - `npm run build:pwa-screenshots` — odtwarza screenshoty zadeklarowane w manifeście;
 - `npm run images` — generuje z kanonicznych oryginałów deterministyczne fallbacki JPEG oraz warianty AVIF i WebP dla skonfigurowanych obrazów treści;
+- `npm run check:images` — bez zapisu sprawdza zgodność wszystkich skonfigurowanych outputów obrazów z kanonicznymi oryginałami;
 - `npm run format` — formatuje obsługiwane źródła przez Prettier.
 
 ### Build produkcyjny
@@ -134,7 +135,7 @@ Aktualny runtime nadal korzysta z `/css/style.css` i `/js/main.js`. Śledzone pl
 
 Kanoniczne, edytowalne oryginały skonfigurowanych obrazów rastrowych znajdują się w `assets/image-sources/`. Rejestr `scripts/image-config.mjs` mapuje je na publiczne ścieżki w `assets/img/` i obecnie obejmuje hero strony głównej, hero kontaktu oraz portret Lauren. Publiczne fallbacki JPEG oraz warianty AVIF i WebP są generowanymi outputami i nie należy edytować ich jako plików źródłowych.
 
-Uruchom `npm run images`, aby z kanonicznych oryginałów ponownie wygenerować skonfigurowane fallbacki JPEG oraz warianty AVIF i WebP w `assets/img/`. W HTML używaj natywnego `<picture>` w kolejności AVIF, WebP, a następnie `<img>` z fallbackiem JPEG, zachowując atrybuty dostępności, wymiary i strategię ładowania. Generowanie obrazów pozostaje osobnym krokiem poza `npm run build`; publiczne outputy są celowo śledzone w repozytorium i należy je odświeżyć przez `npm run images` po zmianie kanonicznego oryginału.
+Uruchom `npm run images`, aby z kanonicznych oryginałów ponownie wygenerować skonfigurowane fallbacki JPEG oraz warianty AVIF i WebP w `assets/img/`. Skrypt najpierw sprawdza kompletność, odczyt i wymiary wszystkich kanonicznych źródeł; błąd preflight kończy działanie przed jakimkolwiek zapisem. Brakujący oryginał nigdy nie jest automatycznie odtwarzany z publicznego fallbacku. `npm run check:images` odtwarza oczekiwane outputy w pamięci i tylko do odczytu wykrywa brakujące lub niezgodne pliki; AVIF jest porównywany na zdekodowanych próbkach z ściśle określoną tolerancją, aby różnice między wersjami kodeka nie wymuszały zmian binarnych. W HTML używaj natywnego `<picture>` w kolejności AVIF, WebP, a następnie `<img>` z fallbackiem JPEG, zachowując atrybuty dostępności, wymiary i strategię ładowania. Generowanie obrazów pozostaje osobnym krokiem poza `npm run build`; publiczne outputy są celowo śledzone w repozytorium i należy je odświeżyć przez `npm run images` po zmianie kanonicznego oryginału.
 
 ### Testy i walidacja
 
@@ -327,6 +328,7 @@ npm run serve
 - `npm run build:css` / `npm run build:js` — refresh the auxiliary files in `assets/build/`;
 - `npm run build:pwa-screenshots` — recreates the screenshots declared by the manifest;
 - `npm run images` — generates deterministic JPEG fallbacks and AVIF and WebP variants for configured content images from canonical originals;
+- `npm run check:images` — read-only checks every configured image output against its canonical original;
 - `npm run format` — formats supported source files with Prettier.
 
 ### Production Build
@@ -343,7 +345,7 @@ The current runtime still uses `/css/style.css` and `/js/main.js`. Tracked files
 
 Canonical editable originals for configured raster images live in `assets/image-sources/`. The `scripts/image-config.mjs` registry maps them to public paths under `assets/img/` and currently covers the homepage hero, contact hero, and Lauren portrait. Public JPEG fallbacks and AVIF and WebP variants are generated outputs and must not be edited as source files.
 
-Run `npm run images` to regenerate the configured JPEG fallbacks and AVIF and WebP variants under `assets/img/` from the canonical originals. In HTML, use native `<picture>` in AVIF, WebP, then JPEG fallback `<img>` order while preserving accessibility attributes, dimensions, and loading strategy. Image generation remains a separate step outside `npm run build`; public outputs are intentionally tracked and must be refreshed through `npm run images` after a canonical original changes.
+Run `npm run images` to regenerate the configured JPEG fallbacks and AVIF and WebP variants under `assets/img/` from the canonical originals. The script first validates the presence, readability, and dimensions of every canonical source; a preflight error stops it before any write. A missing original is never recreated automatically from a public fallback. `npm run check:images` recreates expected outputs in memory and detects missing or mismatched files without writing; AVIF is compared as decoded samples with strict bounds so codec-version differences do not force binary churn. In HTML, use native `<picture>` in AVIF, WebP, then JPEG fallback `<img>` order while preserving accessibility attributes, dimensions, and loading strategy. Image generation remains a separate step outside `npm run build`; public outputs are intentionally tracked and must be refreshed through `npm run images` after a canonical original changes.
 
 ### Testing and Validation
 

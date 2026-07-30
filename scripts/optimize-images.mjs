@@ -1,6 +1,6 @@
-import { copyFile, mkdir, readFile, stat, writeFile } from "node:fs/promises";
+import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 
 import sharp from "sharp";
 
@@ -13,12 +13,14 @@ import {
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const RASTER_EXTENSION = /\.(?:jpe?g|png)$/i;
 const JPEG_EXTENSION = /\.jpe?g$/i;
+const PNG_EXTENSION = /\.png$/i;
+const AVIF_EXTENSION = /\.avif$/i;
 
 const assert = (condition, message) => {
   if (!condition) throw new Error(message);
 };
 
-const toFilePath = (publicPath) => resolve(ROOT, `.${publicPath}`);
+const toFilePath = (root, publicPath) => resolve(root, `.${publicPath}`);
 
 const optimizeModernImage = (source, extension) => {
   if (extension === "avif") {
@@ -35,113 +37,183 @@ const optimizeModernImage = (source, extension) => {
   throw new Error(`Unsupported image format: ${extension}`);
 };
 
-const ensureCanonicalSource = async (asset) => {
-  const sourcePath = toFilePath(asset.sourcePath);
-
-  try {
-    const sourceStats = await stat(sourcePath);
-    assert(
-      sourceStats.isFile(),
-      `Canonical image source is not a file: ${asset.sourcePath}`,
-    );
-    return { sourcePath, sourceWasCreated: false };
-  } catch (error) {
-    if (error?.code !== "ENOENT") throw error;
+const optimizeFallback = (source, fallbackPath) => {
+  if (JPEG_EXTENSION.test(fallbackPath)) {
+    return sharp(source)
+      .jpeg({ quality: 82, progressive: true, mozjpeg: true })
+      .toBuffer();
   }
 
-  const fallbackPath = toFilePath(asset.fallbackPath);
-  const fallbackStats = await stat(fallbackPath);
-  assert(
-    fallbackStats.isFile(),
-    `Image fallback is not a file: ${asset.fallbackPath}`,
-  );
-  await mkdir(dirname(sourcePath), { recursive: true });
-  await copyFile(fallbackPath, sourcePath);
-
-  return { sourcePath, sourceWasCreated: true };
+  if (PNG_EXTENSION.test(fallbackPath)) return sharp(source).png().toBuffer();
+  throw new Error(`Image fallback must be JPEG or PNG: ${fallbackPath}`);
 };
 
-const optimizeJpegFallback = async ({ asset, source, sourceMetadata }) => {
-  if (!JPEG_EXTENSION.test(asset.fallbackPath)) return null;
-
-  const data = await sharp(source)
-    .jpeg({ quality: 82, progressive: true, mozjpeg: true })
-    .toBuffer();
-  const optimizedMetadata = await sharp(data).metadata();
-  assert(
-    optimizedMetadata.width === sourceMetadata.width &&
-      optimizedMetadata.height === sourceMetadata.height,
-    `Optimized JPEG dimensions changed for ${asset.fallbackPath}`,
-  );
-
-  await writeFile(toFilePath(asset.fallbackPath), data);
-  return data.length;
-};
-
-const optimizeAsset = async (asset) => {
-  assert(
-    RASTER_EXTENSION.test(asset.fallbackPath),
-    `Image source must be a JPEG or PNG fallback: ${asset.fallbackPath}`,
-  );
-
-  const { sourcePath, sourceWasCreated } = await ensureCanonicalSource(asset);
-  const source = await readFile(sourcePath);
-  const sourceMetadata = await sharp(source).metadata();
-  const fallbackSize = await optimizeJpegFallback({
-    asset,
-    source,
-    sourceMetadata,
-  });
-
-  const outputs = await Promise.all(
-    MODERN_IMAGE_FORMATS.map(async ({ extension }) => {
-      const outputPath = toFilePath(
-        getModernImagePath(asset.fallbackPath, extension),
-      );
-      const data = await optimizeModernImage(source, extension);
+const preflightSources = async (root, assets) => {
+  const results = await Promise.allSettled(
+    assets.map(async (asset) => {
       assert(
-        Buffer.isBuffer(data) || data instanceof Uint8Array,
-        `Optimizer did not return ${extension.toUpperCase()} data for ${asset.fallbackPath}`,
+        RASTER_EXTENSION.test(asset.fallbackPath),
+        `Configured fallback must be JPEG or PNG: ${asset.fallbackPath}`,
       );
-      await mkdir(dirname(outputPath), { recursive: true });
-      await writeFile(outputPath, data);
-      return { extension, outputPath, size: data.length };
+      const sourcePath = toFilePath(root, asset.sourcePath);
+      let source;
+      try {
+        source = await readFile(sourcePath);
+      } catch (error) {
+        throw new Error(
+          `Canonical image source is missing or unreadable: ${asset.sourcePath} (${error.message})`,
+        );
+      }
+
+      let metadata;
+      try {
+        metadata = await sharp(source).metadata();
+      } catch (error) {
+        throw new Error(
+          `Canonical image source is invalid: ${asset.sourcePath} (${error.message})`,
+        );
+      }
+      assert(
+        metadata.width === asset.width && metadata.height === asset.height,
+        `Canonical image source dimensions for ${asset.sourcePath} are ${metadata.width}x${metadata.height}; expected ${asset.width}x${asset.height}`,
+      );
+      return { asset, source };
     }),
   );
 
-  return {
-    asset,
-    fallbackSize,
-    sourceSize: source.length,
-    outputs,
-    sourceWasCreated,
-  };
+  const errors = results
+    .filter(({ status }) => status === "rejected")
+    .map(({ reason }) => reason.message);
+  if (errors.length > 0) {
+    throw new Error(`Image source preflight failed:\n- ${errors.join("\n- ")}`);
+  }
+  return results.map(({ value }) => value);
 };
 
-const run = async () => {
-  const results = await Promise.all(CONTENT_IMAGE_ASSETS.map(optimizeAsset));
-  for (const {
-    asset,
-    fallbackSize,
-    sourceSize,
-    outputs,
-    sourceWasCreated,
-  } of results) {
-    const outputSize = (extension) =>
-      outputs.find((output) => output.extension === extension)?.size;
-    const sourceStatus = sourceWasCreated ? " (source seeded)" : "";
-    const jpegDetails =
-      fallbackSize === null
-        ? `source ${sourceSize} B`
-        : `JPEG ${sourceSize} B -> ${fallbackSize} B`;
+const createExpectedOutputs = async (sources) =>
+  Promise.all(
+    sources.map(async ({ asset, source }) => {
+      const fallback = await optimizeFallback(source, asset.fallbackPath);
+      const modern = await Promise.all(
+        MODERN_IMAGE_FORMATS.map(async ({ extension }) => ({
+          data: await optimizeModernImage(source, extension),
+          extension,
+          publicPath: getModernImagePath(asset.fallbackPath, extension),
+        })),
+      );
+      return {
+        asset,
+        outputs: [
+          { data: fallback, extension: "fallback", publicPath: asset.fallbackPath },
+          ...modern,
+        ],
+        sourceSize: source.length,
+      };
+    }),
+  );
 
-    console.log(
-      `${asset.fallbackPath}${sourceStatus}: ${jpegDetails}, AVIF ${outputSize("avif")} B, WebP ${outputSize("webp")} B`,
+const matchesExpectedOutput = async (actual, expected, publicPath) => {
+  if (actual.equals(expected)) return true;
+  if (!AVIF_EXTENSION.test(publicPath)) return false;
+
+  // AVIF encoder bytes can vary between libaom builds even when their decoded
+  // image is equivalent. Compare decoded samples with tight, explicit bounds
+  // so parity remains portable without forcing binary churn between platforms.
+  try {
+    const [actualPixels, expectedPixels] = await Promise.all([
+      sharp(actual).removeAlpha().raw().toBuffer({ resolveWithObject: true }),
+      sharp(expected).removeAlpha().raw().toBuffer({ resolveWithObject: true }),
+    ]);
+    if (
+      actualPixels.info.width !== expectedPixels.info.width ||
+      actualPixels.info.height !== expectedPixels.info.height ||
+      actualPixels.info.channels !== expectedPixels.info.channels
+    ) {
+      return false;
+    }
+
+    let differenceTotal = 0;
+    let maximumDifference = 0;
+    for (let index = 0; index < actualPixels.data.length; index += 1) {
+      const difference = Math.abs(
+        actualPixels.data[index] - expectedPixels.data[index],
+      );
+      differenceTotal += difference;
+      maximumDifference = Math.max(maximumDifference, difference);
+    }
+    return (
+      maximumDifference <= 64 &&
+      differenceTotal / actualPixels.data.length <= 3
+    );
+  } catch {
+    return false;
+  }
+};
+
+const checkParity = async (root, expected) => {
+  const mismatches = [];
+  for (const { outputs } of expected) {
+    for (const { data, publicPath } of outputs) {
+      let actual;
+      try {
+        actual = await readFile(toFilePath(root, publicPath));
+      } catch (error) {
+        mismatches.push(`${publicPath}: missing or unreadable (${error.message})`);
+        continue;
+      }
+      if (!(await matchesExpectedOutput(actual, data, publicPath))) {
+        mismatches.push(`${publicPath}: content mismatch`);
+      }
+    }
+  }
+  if (mismatches.length > 0) {
+    throw new Error(`Image output parity check failed:\n- ${mismatches.join("\n- ")}`);
+  }
+};
+
+export const runImagePipeline = async ({
+  assets = CONTENT_IMAGE_ASSETS,
+  check = false,
+  log = console.log,
+  root = ROOT,
+} = {}) => {
+  // This complete preflight, followed by in-memory encoding, must finish before
+  // generation is allowed to make its first output write.
+  const sources = await preflightSources(root, assets);
+  const expected = await createExpectedOutputs(sources);
+
+  if (check) {
+    await checkParity(root, expected);
+    log(`Image output parity verified for ${expected.length} configured sources.`);
+    return;
+  }
+
+  for (const { asset, outputs, sourceSize } of expected) {
+    for (const { data, publicPath } of outputs) {
+      const outputPath = toFilePath(root, publicPath);
+      await mkdir(dirname(outputPath), { recursive: true });
+      await writeFile(outputPath, data);
+    }
+    const outputSize = (extension) =>
+      outputs.find((output) => output.extension === extension)?.data.length;
+    log(
+      `${asset.fallbackPath}: source ${sourceSize} B, fallback ${outputSize("fallback")} B, AVIF ${outputSize("avif")} B, WebP ${outputSize("webp")} B`,
     );
   }
 };
 
-run().catch((error) => {
-  console.error(`Image optimization failed: ${error.message}`);
-  process.exitCode = 1;
-});
+const isMain =
+  process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href;
+if (isMain) {
+  const args = process.argv.slice(2);
+  const unsupported = args.filter((argument) => argument !== "--check");
+  if (unsupported.length > 0) {
+    console.error(`Image optimization failed: unknown argument ${unsupported[0]}`);
+    process.exitCode = 1;
+  } else {
+    runImagePipeline({ check: args.includes("--check") }).catch((error) => {
+      console.error(`Image optimization failed: ${error.message}`);
+      process.exitCode = 1;
+    });
+  }
+}
