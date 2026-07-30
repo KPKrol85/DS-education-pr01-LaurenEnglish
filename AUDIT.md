@@ -260,15 +260,19 @@ None detected.
 
 **Affected area:** dependency installation instructions
 
-**Evidence:** The README states that the repository contains a lockfile and prescribes `npm ci` (`README.md:79-88`). The runtime checklist instead prescribes `npm install` at `docs/runtime-checklist.md:5` and `npm install --no-package-lock` at `docs/runtime-checklist.md:50`.
+**Status:** Resolved
 
-**Current behavior:** Maintainers receive contradictory instructions, including one that explicitly bypasses the committed lockfile.
+**Evidence:** The README prescribed the lockfile-based clean-install workflow, while the runtime checklist previously contained contradictory routine setup commands, including one that bypassed the lockfile.
+
+**Current behavior:** Maintainers receive one reproducible clean-install contract based on the committed lockfile; dependency-graph changes are documented as a separate intentional maintenance activity.
 
 **Impact:** Verification and deployment can use dependency graphs different from the reviewed lockfile, reducing reproducibility.
 
 **Recommended direction:** Standardize clean verification and deployment on `npm ci`; reserve `npm install` for intentional dependency maintenance and remove the no-lockfile instruction.
 
 **Verification criteria:** README and runtime checklist use one consistent lockfile-based installation contract, and a repository search finds no conflicting production or E2E setup command.
+
+**Resolution evidence:** README and the runtime checklist now use `npm ci` to reproduce the committed `package-lock.json` graph for clean local setup, verification, browser-test preparation, and deployment preparation. README reserves `npm install` explicitly for intentional dependency additions, removals, or version maintenance that update both dependency manifests. A focused tracked-file search for `npm install`, `npm i`, `npm ci`, and the lockfile-bypass option found no production, verification, deployment, or E2E setup instruction outside this contract and no maintained instruction that bypasses the lockfile. `git diff --check` passed; no dependency installation, build, or browser suite was run.
 
 ### [P2-05] Core catalogue and journal interactions lack focused browser coverage
 
