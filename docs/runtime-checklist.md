@@ -2,7 +2,7 @@
 
 ## Build
 
-- Zainstaluj zadeklarowane zależności: `npm install`.
+- Odtwórz zatwierdzony graf zależności z `package-lock.json`: `npm ci`.
 - Uruchom pełny build: `npm run build`.
 - Sprawdź parity i semantykę wspólnego shellu: `npm run check:html`.
 - Sprawdź integralność publicznych treści i destinations: `npm run check:content`.
@@ -47,7 +47,7 @@
 
 ## Playwright E2E
 
-- Zainstaluj zależności bez lockfile: `npm install --no-package-lock`.
+- Odtwórz zatwierdzony graf zależności z `package-lock.json`: `npm ci`.
 - Zainstaluj Chromium: `npx playwright install chromium`.
 - Uruchom kompletny build i browser E2E: `npm run test:e2e`.
 - W razie potrzeby uruchom osobno: `test:e2e:smoke`, `test:e2e:interactions`, `test:e2e:theme` lub `test:e2e:responsive`; testy smoke i responsive chronią kontrakty współdzielonego logo, lokalnych fontów, MIME, rodzin typograficznych i polskich znaków.

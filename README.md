@@ -78,12 +78,14 @@ Pliki HTML w katalogu głównym zawierają kanoniczną treść właściwą danej
 
 ### Instalacja
 
-Repozytorium używa npm i zawiera lockfile:
+Repozytorium używa npm i zawiera zatwierdzony `package-lock.json`. Czysta instalacja do lokalnego developmentu, weryfikacji, testów przeglądarkowych i przygotowania wdrożenia zawsze odtwarza ten przeglądnięty graf zależności:
 
 ```powershell
 npm ci
 npx playwright install chromium
 ```
+
+Polecenie `npm install` jest zarezerwowane wyłącznie dla celowego dodawania, usuwania lub aktualizowania zależności wraz z odpowiednią zmianą `package.json` i `package-lock.json`; nie służy do rutynowej konfiguracji projektu.
 
 Projekt nie deklaruje konkretnej wersji Node.js. Python 3 jest wymagany wyłącznie przez projektowy serwer uruchamiany poleceniem `npm run dev` lub plikiem `start-dev.bat`.
 
@@ -149,7 +151,7 @@ To zadanie dokumentacyjne nie uruchamiało buildów, walidatorów ani testów, d
 
 Publiczna wersja jest dostępna pod adresem wskazanym w sekcji „Wersja online”. Repozytorium nie zawiera `netlify.toml`; build zapisuje komplet publikowanych plików bezpośrednio w katalogu głównym zamiast w `dist/`.
 
-Przed publikacją należy uruchomić `npm run build`. Plik `_redirects` obsługuje alias `/thank-you`, a formularz w `kontakt.html` używa atrybutów Netlify Forms, honeypota `bot-field` i strony docelowej `/thank-you.html`.
+Przed publikacją należy odtworzyć zatwierdzony graf zależności poleceniem `npm ci`, a następnie uruchomić `npm run build`. Plik `_redirects` obsługuje alias `/thank-you`, a formularz w `kontakt.html` używa atrybutów Netlify Forms, honeypota `bot-field` i strony docelowej `/thank-you.html`.
 
 ### Dostępność
 
@@ -288,12 +290,14 @@ Root HTML files contain canonical page-specific content, but regions marked with
 
 ### Installation
 
-The repository uses npm and includes a lockfile:
+The repository uses npm and includes a committed `package-lock.json`. Clean installation for local development, verification, browser tests, and deployment preparation always reproduces this reviewed dependency graph:
 
 ```powershell
 npm ci
 npx playwright install chromium
 ```
+
+`npm install` is reserved exclusively for intentionally adding, removing, or updating dependencies together with the corresponding `package.json` and `package-lock.json` changes; it is not a routine project setup command.
 
 The project does not declare a specific Node.js version. Python 3 is required only by the project server started with `npm run dev` or `start-dev.bat`.
 
@@ -359,7 +363,7 @@ This documentation-only task did not run builds, validators, or tests, so the RE
 
 The public deployment is available at the URL listed under “Live Version.” The repository does not contain `netlify.toml`; the build writes the complete publishable output directly to the repository root instead of `dist/`.
 
-Run `npm run build` before publishing. `_redirects` handles the `/thank-you` alias, while the form in `kontakt.html` uses Netlify Forms attributes, the `bot-field` honeypot, and `/thank-you.html` as its destination.
+Before publishing, reproduce the committed dependency graph with `npm ci`, then run `npm run build`. `_redirects` handles the `/thank-you` alias, while the form in `kontakt.html` uses Netlify Forms attributes, the `bot-field` honeypot, and `/thank-you.html` as its destination.
 
 ### Accessibility
 
