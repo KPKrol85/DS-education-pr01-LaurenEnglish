@@ -236,19 +236,23 @@ None detected.
 
 ### [P2-03] Missing canonical images can be silently recreated from lossy output
 
+**Status:** Resolved
+
 **Classification:** P2 — asset-pipeline integrity
 
 **Affected area:** image generation
 
 **Evidence:** `scripts/optimize-images.mjs:37-60` copies a public fallback from `assets/img/` into the canonical `assets/image-sources/` path when the canonical source is missing. `scripts/optimize-images.mjs:63-107` then recompresses the fallback and writes all public formats. The README identifies `assets/image-sources/` as the canonical editable input (`README.md:133-137`).
 
-**Current behavior:** Accidental removal of a canonical original does not fail loudly; the next image run can promote an already generated JPEG to canonical status.
+**Current behavior:** Generation requires every configured canonical original to pass a complete presence, readability, image, and dimension preflight before output encoding or writes begin. Public outputs are never promoted to canonical storage, and a separate read-only parity mode compares deterministic expected output with every configured file, using strict decoded-sample bounds for codec-portable AVIF verification.
 
 **Impact:** The pipeline can silently introduce cumulative quality loss and weaken the documented source-of-truth boundary.
 
 **Recommended direction:** Treat a missing canonical source as an error now that migration is complete, and provide a separate explicit migration path if fallback promotion is ever required.
 
 **Verification criteria:** A missing canonical source causes a clear non-writing failure; valid sources regenerate all configured outputs; a read-only parity check detects stale or missing outputs.
+
+**Resolution evidence:** `scripts/optimize-images.mjs` now completes source preflight and in-memory encoding before its first output write, has no fallback-promotion path, and exposes read-only content parity through `npm run check:images`. Exact bytes are used for JPEG, PNG, and WebP; AVIF uses strict decoded-sample bounds to tolerate codec-build variance without committing regenerated binaries. The focused temporary-directory test verified a clear missing-source failure without content or modification-time changes, generation of JPEG, AVIF, and WebP outputs, no-touch successful parity, and detection of both stale and missing outputs. `npm run test:images`, `npm run check:images`, and `git diff --check` passed.
 
 ### [P2-04] Runtime installation guidance conflicts with the lockfile workflow
 
