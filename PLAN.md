@@ -98,6 +98,16 @@
 
 - [x] **PH3-03 — Integrate the Vite production asset graph**
 
+  - **Verified implementation:**
+    - all twelve built HTML pages consume one hashed Vite CSS bundle and one hashed Vite JavaScript bundle from `dist/build/`
+    - canonical CSS and ES module sources remain under `css/` and `js/`, while generated production assets remain isolated inside `dist/`
+    - root-relative HTML, CSS, image, font, icon, manifest, navigation, and page-specific references resolve inside the publish output
+    - the retired auxiliary files under `assets/build/` and their CSS and JavaScript build and watch commands have been removed
+    - the development watcher no longer retains an exclusion contract for the removed auxiliary output directory
+    - direct `/css/style.css`, `/js/main.js`, and `/assets/build/` production references are absent from the Vite output
+    - `scripts/check-vite-build.mjs`, exposed through `npm run check:vite`, validates the twelve-page output, hashed bundles, required publish assets, and forbidden legacy paths without modifying generated files
+    - PWA, Playwright, and deployment integration remain reserved for their dedicated migration phases
+
   - [x] make the built HTML consume Vite-generated CSS and JavaScript assets
   - [x] keep canonical CSS and ES module sources under their current source ownership
   - [x] preserve root-relative navigation, images, fonts, icons, manifest references, and page-specific behavior
