@@ -2,6 +2,8 @@ import { expect, test } from "@playwright/test";
 
 import { createViteServiceWorkerBuild } from "../../scripts/build-service-worker.mjs";
 
+test.use({ serviceWorkers: "allow" });
+
 test("serves the complete Vite PWA contract offline", async ({
   page,
   context,

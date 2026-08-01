@@ -9,6 +9,7 @@ const pageInputs = Object.fromEntries(
 );
 
 export default defineConfig({
+  appType: "mpa",
   publicDir: ".vite-public",
 
   build: {

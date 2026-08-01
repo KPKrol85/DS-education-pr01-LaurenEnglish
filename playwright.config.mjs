@@ -1,5 +1,7 @@
 import { defineConfig } from "@playwright/test";
 
+import { createVitePreviewServer } from "./playwright.server.mjs";
+
 const BASE_URL = "http://127.0.0.1:4173";
 
 export default defineConfig({
@@ -27,15 +29,7 @@ export default defineConfig({
     actionTimeout: 10_000,
     navigationTimeout: 15_000,
   },
-  webServer: {
-    command:
-      "python scripts/dev-server.py --port 4173 --no-browser --no-live-reload --skip-initial-build",
-    url: `${BASE_URL}/index.html`,
-    reuseExistingServer: true,
-    timeout: 30_000,
-    stdout: "pipe",
-    stderr: "pipe",
-  },
+  webServer: createVitePreviewServer(BASE_URL),
   projects: [
     {
       name: "chromium-desktop",

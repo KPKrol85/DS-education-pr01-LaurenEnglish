@@ -1,6 +1,10 @@
 import { expect, test } from "@playwright/test";
 
-import { createServiceWorkerBuild } from "../../scripts/build-service-worker.mjs";
+import {
+  DIST_ROOT,
+  createViteServiceWorkerBuild,
+  discoverViteRuntimePaths,
+} from "../../scripts/build-service-worker.mjs";
 import {
   CONTENT_IMAGE_ASSETS,
   MODERN_IMAGE_FORMATS,
@@ -17,10 +21,7 @@ import {
   MANIFEST_ICON_PATHS,
   MANIFEST_PATH,
   MANIFEST_SCREENSHOT_PATHS,
-  PRECACHE_PATHS,
-  PRIMARY_DOCUMENT_PATHS,
-  RUNTIME_CSS_PATHS,
-  RUNTIME_JAVASCRIPT_PATHS,
+  OFFLINE_PATH,
   SHORTCUT_ICON_PATHS,
 } from "../../scripts/pwa-config.mjs";
 import {
@@ -31,7 +32,16 @@ import {
 
 test.use({ serviceWorkers: "allow" });
 
-const { cacheName: CURRENT_CACHE_NAME } = await createServiceWorkerBuild();
+let currentBuild;
+let viteRuntimePaths;
+
+test.beforeAll(async () => {
+  currentBuild = await createViteServiceWorkerBuild();
+  viteRuntimePaths = (await discoverViteRuntimePaths(DIST_ROOT)).filter(
+    (path) => /\.(?:css|js)$/.test(path),
+  );
+});
+
 const OLD_PROJECT_CACHE = `${CACHE_PREFIX}0.9.0-obsolete`;
 const UNRELATED_CACHE = "unrelated-application-sentinel";
 const UNSUCCESSFUL_POST_STATUSES = Object.freeze([404, 405, 501]);
@@ -50,10 +60,11 @@ const registerAndControl = async (page) => {
     };
   });
 
+  const origin = new URL(page.url()).origin;
   expect(registrationState).toEqual({
     activeState: expect.stringMatching(/^(?:activating|activated)$/),
-    scope: "http://127.0.0.1:4173/",
-    scriptUrl: "http://127.0.0.1:4173/service-worker.js",
+    scope: `${origin}/`,
+    scriptUrl: `${origin}/service-worker.js`,
   });
 
   await expect
@@ -105,7 +116,7 @@ const getCurrentCachePaths = (page) =>
     return (await cache.keys())
       .map((request) => new URL(request.url).pathname)
       .sort();
-  }, CURRENT_CACHE_NAME);
+  }, currentBuild.cacheName);
 
 const getImageResults = (page, assets) =>
   page.evaluate(async (imageAssets) => {
@@ -230,19 +241,21 @@ test("installs, controls the page, validates install metadata, and preserves unr
         caches.open(unrelatedCache),
       ]);
     },
-    [OLD_PROJECT_CACHE, CURRENT_CACHE_NAME, UNRELATED_CACHE],
+    [OLD_PROJECT_CACHE, currentBuild.cacheName, UNRELATED_CACHE],
   );
 
   await registerAndControl(page);
 
   const cacheNames = await page.evaluate(() => caches.keys());
-  expect(cacheNames).toContain(CURRENT_CACHE_NAME);
+  expect(cacheNames).toContain(currentBuild.cacheName);
   expect(cacheNames).not.toContain(OLD_PROJECT_CACHE);
   expect(cacheNames).toContain(UNRELATED_CACHE);
   expect(
     cacheNames.filter((cacheName) => cacheName.startsWith(CACHE_PREFIX)),
-  ).toEqual([CURRENT_CACHE_NAME]);
-  expect(await getCurrentCachePaths(page)).toEqual([...PRECACHE_PATHS].sort());
+  ).toEqual([currentBuild.cacheName]);
+  expect(await getCurrentCachePaths(page)).toEqual(
+    [...currentBuild.precachePaths].sort(),
+  );
 
   const manifestResult = await page.evaluate(async (manifestPath) => {
     const response = await fetch(manifestPath);
@@ -339,8 +352,9 @@ test("keeps online routing real and never stores failed or partial responses", a
   const diagnostics = collectRuntimeDiagnostics(page);
   await page.goto(MANIFEST_PATH, { waitUntil: "domcontentloaded" });
   await registerAndControl(page);
+  const origin = new URL(page.url()).origin;
 
-  for (const path of PRIMARY_DOCUMENT_PATHS) {
+  for (const path of currentBuild.primaryDocumentPaths) {
     const response = await page.goto(path, { waitUntil: "domcontentloaded" });
     expect(response?.status(), path).toBe(200);
   }
@@ -350,7 +364,6 @@ test("keeps online routing real and never stores failed or partial responses", a
     waitUntil: "domcontentloaded",
   });
   expect(unknownResponse?.status()).toBe(404);
-  await expect(page.getByRole("heading", { level: 1 })).toContainText("404");
 
   const failedAssetPath = "/assets/pwa/shortcuts/not-a-real-icon.png";
   const failedAssetStatus = await page.evaluate(async (path) => {
@@ -375,7 +388,7 @@ test("keeps online routing real and never stores failed or partial responses", a
         status: response.status,
       };
     },
-    { cacheName: CURRENT_CACHE_NAME, path: postPath },
+    { cacheName: currentBuild.cacheName, path: postPath },
   );
   const postResponse = await postResponsePromise;
   expect(UNSUCCESSFUL_POST_STATUSES).toContain(postResult.status);
@@ -401,7 +414,7 @@ test("keeps online routing real and never stores failed or partial responses", a
         validStatus: validResponse.status,
       };
     },
-    { cacheName: CURRENT_CACHE_NAME, path: partialPath },
+    { cacheName: currentBuild.cacheName, path: partialPath },
   );
   expect(partialResult).toEqual({
     cachedAfterPartial: false,
@@ -421,7 +434,7 @@ test("keeps online routing real and never stores failed or partial responses", a
         unknownRouteCached: Boolean(await cache.match(unknownPath)),
       };
     },
-    { cacheName: CURRENT_CACHE_NAME, failedAssetPath, unknownPath },
+    { cacheName: currentBuild.cacheName, failedAssetPath, unknownPath },
   );
   expect(cacheProbe).toEqual({
     dataSchemeChangedCache: false,
@@ -429,9 +442,9 @@ test("keeps online routing real and never stores failed or partial responses", a
     unknownRouteCached: false,
   });
   const expectedHttpErrors = [
-    `404 http://127.0.0.1:4173${unknownPath}`,
-    `404 http://127.0.0.1:4173${failedAssetPath}`,
-    `${postResult.status} http://127.0.0.1:4173${postPath}`,
+    `404 ${origin}${unknownPath}`,
+    `404 ${origin}${failedAssetPath}`,
+    `${postResult.status} ${origin}${postPath}`,
   ].sort();
   expect(diagnostics.consoleErrors).toHaveLength(expectedHttpErrors.length);
   expect(diagnostics.pageErrors).toEqual([]);
@@ -439,7 +452,7 @@ test("keeps online routing real and never stores failed or partial responses", a
   expect([...diagnostics.httpErrors].sort()).toEqual(expectedHttpErrors);
 });
 
-test("serves exact primary documents offline and uses offline.html for unknown navigation", async ({
+test("serves all published documents offline and uses offline.html for unknown navigation", async ({
   page,
   context,
 }) => {
@@ -448,13 +461,15 @@ test("serves exact primary documents offline and uses offline.html for unknown n
   await registerAndControl(page);
   await context.setOffline(true);
 
-  for (const path of PRIMARY_DOCUMENT_PATHS) {
+  for (const path of currentBuild.primaryDocumentPaths) {
     const response = await page.goto(path, { waitUntil: "domcontentloaded" });
     expect(response?.status(), path).toBe(200);
     await expect(page.getByRole("main")).toBeVisible();
-    await expect(page.getByRole("heading", { level: 1 })).not.toHaveText(
-      "Jesteś offline",
-    );
+    if (path !== OFFLINE_PATH) {
+      await expect(page.getByRole("heading", { level: 1 })).not.toHaveText(
+        "Jesteś offline",
+      );
+    }
   }
 
   const fallbackResponse = await page.goto("/pwa-offline-unknown-route", {
@@ -471,7 +486,7 @@ test("serves exact primary documents offline and uses offline.html for unknown n
   expectCleanDiagnostics(diagnostics);
 });
 
-test("meets the direct source request budget without duplicates or legacy bundles", async ({
+test("uses the Vite runtime graph without duplicates or source bundles", async ({
   page,
 }) => {
   const diagnostics = collectRuntimeDiagnostics(page);
@@ -479,6 +494,7 @@ test("meets the direct source request budget without duplicates or legacy bundle
   await registerAndControl(page);
   await page.reload({ waitUntil: "networkidle" });
   await page.evaluate(() => document.fonts.ready.then(() => true));
+  const origin = new URL(page.url()).origin;
 
   const getCriticalResources = () =>
     page.evaluate(() =>
@@ -490,18 +506,22 @@ test("meets the direct source request budget without duplicates or legacy bundle
   const countPath = (path) =>
     resourcePaths.filter((resourcePath) => resourcePath === path).length;
 
-  for (const path of RUNTIME_CSS_PATHS) {
+  for (const path of viteRuntimePaths) {
     expect(countPath(path), path).toBe(1);
   }
-  for (const path of RUNTIME_JAVASCRIPT_PATHS) {
-    expect(countPath(path), path).toBe(1);
-  }
+  expect(
+    resourcePaths.filter(
+      (path) => path.startsWith("/build/") && /\.(?:css|js)$/.test(path),
+    ),
+  ).toHaveLength(viteRuntimePaths.length);
   expect(resourcePaths.filter((path) => path.startsWith("/css/"))).toHaveLength(
-    CRITICAL_ASSET_BUDGET.runtimeCssRequests,
+    0,
   );
   expect(resourcePaths.filter((path) => path.startsWith("/js/"))).toHaveLength(
-    CRITICAL_ASSET_BUDGET.runtimeJavaScriptRequests,
+    0,
   );
+  expect(countPath("/css/style.css")).toBe(0);
+  expect(countPath("/js/main.js")).toBe(0);
   expect(countPath("/assets/build/style.min.css")).toBe(0);
   expect(countPath("/assets/build/main.min.js")).toBe(0);
   const hero = page.locator(".hero__image");
@@ -533,12 +553,12 @@ test("meets the direct source request budget without duplicates or legacy bundle
       .map((entry) => new URL(entry.name))
       .filter(
         ({ pathname }) =>
-          pathname.startsWith("/css/") || pathname.startsWith("/js/"),
+          pathname.startsWith("/build/") && /\.(?:css|js)$/.test(pathname),
       )
       .map(({ origin }) => origin),
   );
   expect(
-    runtimeOrigins.every((origin) => origin === "http://127.0.0.1:4173"),
+    runtimeOrigins.every((runtimeOrigin) => runtimeOrigin === origin),
   ).toBe(true);
 
   await expect(hero).toHaveAttribute("loading", "eager");

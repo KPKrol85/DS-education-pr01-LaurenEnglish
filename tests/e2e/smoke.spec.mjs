@@ -1,10 +1,10 @@
 import { expect, test } from "@playwright/test";
 
 import {
-  FONT_PATHS,
-  RUNTIME_CSS_PATHS,
-  RUNTIME_JAVASCRIPT_PATHS,
-} from "../../scripts/pwa-config.mjs";
+  DIST_ROOT,
+  discoverViteRuntimePaths,
+} from "../../scripts/build-service-worker.mjs";
+import { FONT_PATHS } from "../../scripts/pwa-config.mjs";
 import { SITE } from "../../scripts/site-config.mjs";
 import {
   PRIMARY_PAGES,
@@ -13,6 +13,14 @@ import {
 } from "./helpers/runtime.mjs";
 
 test.describe("generated production pages", () => {
+  let runtimePaths;
+
+  test.beforeAll(async () => {
+    runtimePaths = (await discoverViteRuntimePaths(DIST_ROOT)).filter((path) =>
+      /\.(?:css|js)$/.test(path),
+    );
+  });
+
   test("homepage and shared shell expose the approved Lauren English identity", async ({
     page,
   }) => {
@@ -33,15 +41,17 @@ test.describe("generated production pages", () => {
 
   for (const publicPage of PRIMARY_PAGES) {
     test(`${publicPage.name} loads generated assets without runtime errors`, async ({
+      baseURL,
       page,
     }) => {
       const diagnostics = collectRuntimeDiagnostics(page);
+      const expectedOrigin = new URL(baseURL).origin;
       const assetStatuses = new Map();
       const assetContentTypes = new Map();
 
       page.on("response", (response) => {
         const url = new URL(response.url());
-        if (url.hostname === "127.0.0.1" && url.port === "4173") {
+        if (url.origin === expectedOrigin) {
           assetStatuses.set(url.pathname, response.status());
           assetContentTypes.set(
             url.pathname,
@@ -70,14 +80,14 @@ test.describe("generated production pages", () => {
           .map(({ origin, pathname }) => ({ origin, pathname })),
       );
 
-      for (const path of RUNTIME_CSS_PATHS) {
+      for (const path of runtimePaths) {
         expect(assetStatuses.get(path), path).toBe(200);
-        expect(assetContentTypes.get(path), path).toContain("text/css");
+        expect(assetContentTypes.get(path), path).toMatch(
+          path.endsWith(".css") ? /text\/css/ : /javascript/,
+        );
       }
-      for (const path of RUNTIME_JAVASCRIPT_PATHS) {
-        expect(assetStatuses.get(path), path).toBe(200);
-        expect(assetContentTypes.get(path), path).toMatch(/javascript/);
-      }
+      expect(assetStatuses.has(SITE.runtime.stylesheet)).toBe(false);
+      expect(assetStatuses.has(SITE.runtime.javascript)).toBe(false);
       expect(assetStatuses.has("/assets/build/style.min.css")).toBe(false);
       expect(assetStatuses.has("/assets/build/main.min.js")).toBe(false);
       expect(assetStatuses.get(SITE.brandLogo.path)).toBe(200);
@@ -91,7 +101,7 @@ test.describe("generated production pages", () => {
         FONT_PATHS.length,
       );
       for (const { origin, pathname } of fontResources) {
-        expect(origin).toBe("http://127.0.0.1:4173");
+        expect(origin).toBe(expectedOrigin);
         expect(assetStatuses.get(pathname)).toBe(200);
         expect(assetContentTypes.get(pathname)).toContain("font/woff2");
       }
@@ -101,17 +111,15 @@ test.describe("generated production pages", () => {
           .map((entry) => new URL(entry.name))
           .filter(
             ({ pathname }) =>
-              pathname.startsWith("/css/") || pathname.startsWith("/js/"),
+              pathname.startsWith("/build/") && /\.(?:css|js)$/.test(pathname),
           )
           .map(({ origin, pathname }) => ({ origin, pathname })),
       );
       expect(runtimeResources.map(({ pathname }) => pathname).sort()).toEqual(
-        [...RUNTIME_CSS_PATHS, ...RUNTIME_JAVASCRIPT_PATHS].sort(),
+        [...runtimePaths].sort(),
       );
       expect(
-        runtimeResources.every(
-          ({ origin }) => origin === "http://127.0.0.1:4173",
-        ),
+        runtimeResources.every(({ origin }) => origin === expectedOrigin),
       ).toBe(true);
       expectCleanDiagnostics(diagnostics);
     });

@@ -1,5 +1,7 @@
 import { defineConfig } from "@playwright/test";
 
+import { createVitePreviewServer } from "./playwright.server.mjs";
+
 const BASE_URL = "http://127.0.0.1:4274";
 
 export default defineConfig({
@@ -25,14 +27,7 @@ export default defineConfig({
     actionTimeout: 10_000,
     navigationTimeout: 15_000,
   },
-  webServer: {
-    command: `npm exec vite -- preview --host 127.0.0.1 --port ${new URL(BASE_URL).port} --strictPort`,
-    url: `${BASE_URL}/index.html`,
-    reuseExistingServer: false,
-    timeout: 30_000,
-    stdout: "pipe",
-    stderr: "pipe",
-  },
+  webServer: createVitePreviewServer(BASE_URL),
   projects: [
     {
       name: "chromium-vite-pwa",

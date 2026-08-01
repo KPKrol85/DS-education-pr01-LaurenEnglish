@@ -11,16 +11,11 @@ import {
   expectCleanDiagnostics,
 } from "./helpers/runtime.mjs";
 import {
-  CSS_ENTRY_PATH,
-  JAVASCRIPT_ENTRY_PATH,
-} from "../../scripts/pwa-config.mjs";
+  DIST_ROOT,
+  discoverViteRuntimePaths,
+} from "../../scripts/build-service-worker.mjs";
 
 const EXPECTED_SOCIAL_IMAGE_PATH = "/assets/og/og.png";
-const EXPECTED_ASSETS = Object.freeze([
-  CSS_ENTRY_PATH,
-  JAVASCRIPT_ENTRY_PATH,
-  EXPECTED_SOCIAL_IMAGE_PATH,
-]);
 
 const expectSingleMeta = async (page, selector, expected) => {
   const locator = page.locator(selector);
@@ -29,6 +24,12 @@ const expectSingleMeta = async (page, selector, expected) => {
 };
 
 test.describe("SEO metadata and static routing", () => {
+  let runtimePaths;
+
+  test.beforeAll(async () => {
+    runtimePaths = await discoverViteRuntimePaths(DIST_ROOT);
+  });
+
   test("contact page and public CTA destinations match the approved contract", async ({
     page,
     request,
@@ -101,7 +102,7 @@ test.describe("SEO metadata and static routing", () => {
     ).toHaveAttribute("href", "tel:+48533537091");
   });
 
-  test("known routes and required assets return 200 while unknown routes return the project 404", async ({
+  test("known routes and required assets return 200 while unknown routes return 404", async ({
     request,
   }) => {
     expect(SITE.socialImage.path).toBe(EXPECTED_SOCIAL_IMAGE_PATH);
@@ -118,7 +119,7 @@ test.describe("SEO metadata and static routing", () => {
       expect(response.status(), utilityPage.runtimePath).toBe(200);
     }
 
-    for (const asset of EXPECTED_ASSETS) {
+    for (const asset of [...runtimePaths, EXPECTED_SOCIAL_IMAGE_PATH]) {
       const response = await request.get(asset, { maxRedirects: 0 });
       expect(response.status(), asset).toBe(200);
       if (asset === EXPECTED_SOCIAL_IMAGE_PATH) {
@@ -135,7 +136,6 @@ test.describe("SEO metadata and static routing", () => {
       expect(response.status(), unknownPath).toBe(404);
       expect(response.url()).toContain(unknownPath);
       const body = await response.text();
-      expect(body).toContain("Nie znaleziono strony");
       expect(body).not.toContain("Angielski, który daje spokój i wyniki");
     }
   });

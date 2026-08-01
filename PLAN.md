@@ -141,8 +141,8 @@
 
   - [x] preserve the source-oriented Python development workflow or replace it only with one reviewed equivalent
   - [x] preserve live reload, HTML assembly, and local PWA cleanup during development
-  - [ ] make Playwright serve and verify the dedicated publish directory
-  - [ ] retain focused and complete browser-suite entrypoints
+  - [x] make Playwright serve and verify the dedicated publish directory
+  - [x] retain focused and complete browser-suite entrypoints
   - [ ] define the repository-owned Netlify build command and publish directory
   - [ ] keep the root publishing workflow active until the isolated build, PWA graph, and browser coverage pass together
   - [ ] switch Netlify publishing only after the complete migration contract is verified
