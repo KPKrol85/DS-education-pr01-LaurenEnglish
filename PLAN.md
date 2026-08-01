@@ -74,7 +74,17 @@
   - [x] define the migration boundary without changing the current production, PWA, Playwright, or Netlify contracts
   - **Completion condition:** the target build sequence, source ownership, publish contents, and migration boundaries are documented and supported by the current project structure
 
-- [ ] **PH3-02 — Implement an isolated Vite multi-page build**
+- [x] **PH3-02 — Implement an isolated Vite multi-page build**
+
+  - **Verified implementation:**
+    - `vite.config.mjs` derives all twelve HTML inputs from the canonical `ALL_PAGES` registry
+    - `npm run dev:vite` and `npm run build:vite` provide isolated Vite workflows without replacing the existing `dev` and `build` commands
+    - `scripts/prepare-vite-public.mjs` stages the approved root files and runtime asset directories through the generated `.vite-public/` directory
+    - the production build emits twelve HTML pages with hashed CSS and JavaScript inside `dist/build/`
+    - `site.webmanifest`, `sitemap.xml`, `robots.txt`, `_redirects`, and required runtime assets retain their expected publish paths
+    - `assets/build/` and `assets/image-sources/` remain excluded from the publish output
+    - the Vite development origin is treated as local development so the production Service Worker does not interfere with live source preview
+    - the current root-publish, PWA generation, Playwright, and Netlify workflows remain unchanged
 
   - [x] add the reviewed Vite development dependency and required configuration without introducing a frontend framework
   - [x] add development and production commands that do not replace the current workflow prematurely
@@ -86,16 +96,20 @@
   - **Depends on:** `PH3-01`
   - **Completion condition:** one isolated Vite command produces a complete twelve-page publish directory without switching the active production workflow
 
+<!-- in progress -->
+
 - [ ] **PH3-03 — Integrate the Vite production asset graph**
 
-  - [ ] make the built HTML consume Vite-generated CSS and JavaScript assets
-  - [ ] keep canonical CSS and ES module sources under their current source ownership
-  - [ ] preserve root-relative navigation, images, fonts, icons, manifest references, and page-specific behavior
+  - [x] make the built HTML consume Vite-generated CSS and JavaScript assets
+  - [x] keep canonical CSS and ES module sources under their current source ownership
+  - [x] preserve root-relative navigation, images, fonts, icons, manifest references, and page-specific behavior
   - [ ] define the final role or removal path for auxiliary output under `assets/build/`
   - [ ] ensure no direct-source and auxiliary production asset contracts remain active accidentally
   - [ ] adapt relevant read-only validators to the built asset graph where required
   - **Depends on:** `PH3-02`
   - **Completion condition:** the isolated publish output uses one consistent Vite-generated production asset graph while canonical source ownership remains clear
+
+<!-- @@@@@@@@@@@@@@@@@@@@ -->
 
 - [ ] **PH3-04 — Integrate the PWA and Service Worker with the publish output**
 

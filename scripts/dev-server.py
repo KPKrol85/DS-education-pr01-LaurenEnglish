@@ -49,7 +49,7 @@ EXCLUDED_DIRECTORY_NAMES = {
     "playwright-report",
     "test-results",
 }
-EXCLUDED_DIRECTORY_PATHS = {"assets/build"}
+
 EXCLUDED_FILES = {"service-worker.js"}
 HTML_BUILD_DEPENDENCIES = {
     "package.json",
@@ -103,11 +103,7 @@ def is_temporary_file(name: str) -> bool:
 
 
 def is_excluded_directory(path: Path) -> bool:
-    relative = relative_path(path)
-    return (
-        path.name in EXCLUDED_DIRECTORY_NAMES
-        or relative in EXCLUDED_DIRECTORY_PATHS
-    )
+    return path.name in EXCLUDED_DIRECTORY_NAMES
 
 
 def scan_watched_files() -> dict[str, tuple[int, int]]:
