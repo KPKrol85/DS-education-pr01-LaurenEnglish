@@ -6,7 +6,7 @@
 
 Lauren English to statyczna, wielostronicowa witryna edukacyjna prezentująca ofertę indywidualnej nauki języka angielskiego. Repozytorium obejmuje stronę główną, usługi, pakiety, katalog materiałów, lokalny dziennik postępów, kontakt, dokumenty prawne oraz strony techniczne dla błędów, trybu offline i potwierdzenia wysłania formularza.
 
-Każda trasa jest samodzielnym dokumentem HTML. Wspólny shell, metadane, treści oparte na danych i Service Worker są składane przez statyczne skrypty Node.js. Przeglądarka ładuje bezpośrednio kanoniczne źródła `/css/style.css` i `/js/main.js`; projekt nie używa frameworka frontendowego ani routingu SPA.
+Każda trasa jest samodzielnym dokumentem HTML. Wspólny shell, metadane i treści oparte na danych są składane przez statyczne skrypty Node.js. `npm run build:vite` tworzy kompletne `dist/`, w którym produkcyjny HTML ładuje haszowane CSS i JavaScript z `/build/`, a Service Worker korzysta z finalnego grafu Vite. Kanoniczne źródła pozostają poza `dist/`; projekt nie używa frameworka frontendowego ani routingu SPA.
 
 ### Wersja online
 
@@ -26,11 +26,11 @@ Każda trasa jest samodzielnym dokumentem HTML. Wspólny shell, metadane, treśc
 
 - **Runtime:** semantyczny HTML5, CSS, Vanilla JavaScript w natywnych modułach ES;
 - **CSS:** design tokens, BEM, układ mobile-first, PostCSS, `postcss-import`, cssnano;
-- **Build:** statyczne skrypty Node.js ESM, esbuild dla pomocniczego bundla JavaScript i Sharp dla obrazów;
+- **Build:** statyczne skrypty Node.js ESM, wielostronicowy Vite z PostCSS oraz Sharp dla obrazów;
 - **Development:** npm z `package-lock.json` oraz projektowy serwer Python 3 z live reload do lokalnego podglądu;
 - **Jakość kodu:** ESLint, Prettier i projektowe walidatory HTML, treści, danych, CSS, SEO, PWA oraz workflow deweloperskiego;
 - **Testy przeglądarkowe:** Playwright w Chromium dla widoków desktopowych i mobilnych;
-- **Integracja hostingowa:** Netlify Forms i reguły `_redirects`.
+- **Integracja hostingowa:** Netlify Forms, reguły `_redirects` oraz `netlify.toml` z manualnym deploymentem `dist/`.
 
 ### Architektura
 
@@ -39,9 +39,10 @@ Każda trasa jest samodzielnym dokumentem HTML. Wspólny shell, metadane, treśc
 - `scripts/content-renderers.mjs` łączy dane z `js/data/` z oznaczonymi regionami pakietów i materiałów w HTML.
 - `css/style.css` zachowuje kolejność warstw `tokens → base → utilities → components → sections → pages`.
 - `js/main.js` inicjalizuje odseparowane moduły funkcjonalne; każdy moduł chroni zapytania DOM i kończy działanie, gdy jego komponent nie występuje na stronie.
-- `service-worker.template.js` i `scripts/pwa-config.mjs` są źródłami generowanego `service-worker.js`.
+- `vite.config.mjs` wyprowadza dwanaście wejść HTML z rejestru stron i zapisuje haszowane zasoby produkcyjne w `dist/build/`.
+- `service-worker.template.js`, `scripts/pwa-config.mjs` i finalny graf Vite są źródłami produkcyjnego `dist/service-worker.js`.
 
-Pliki HTML w katalogu głównym zawierają kanoniczną treść właściwą danej stronie, ale regionów oznaczonych komentarzami `seo:*`, `shared-shell:*`, `package-*` i `materials-*` nie należy edytować ręcznie. `sitemap.xml`, `robots.txt`, `_redirects` i `service-worker.js` także są generowane przez skrypty projektu.
+Pliki HTML w katalogu głównym zawierają kanoniczną treść właściwą danej stronie, ale regionów oznaczonych komentarzami `seo:*`, `shared-shell:*`, `package-*` i `materials-*` nie należy edytować ręcznie. `sitemap.xml`, `robots.txt` i `_redirects` są generowanymi zasobami routingu. `.vite-public/` jest tymczasowym stagingiem, a całe `dist/` — łącznie z HTML, bundle’ami i Service Workerem — jest generowanym outputem publikacyjnym, którego nie należy utrzymywać ręcznie.
 
 ### Struktura projektu
 
@@ -66,11 +67,16 @@ Pliki HTML w katalogu głównym zawierają kanoniczną treść właściwą danej
 │   ├── pages/                 # logika stron
 │   └── state/                 # bezpieczne operacje na stanie przeglądarki
 ├── scripts/                   # assemblery, renderery, walidatory i serwer developerski
-├── assets/                    # obrazy, ikony, fonty, PWA i pomocnicze buildy
+├── assets/                    # obrazy źródłowe i publiczne, ikony, fonty oraz PWA
 ├── tests/e2e/                 # testy Playwright
 ├── docs/                      # dokumentacja architektury i workflow
+├── .vite-public/              # generowany staging publicznych assetów Vite
+├── dist/                      # generowany katalog publikacyjny
 ├── service-worker.template.js
-├── service-worker.js          # plik generowany
+├── service-worker.js          # rootowy output zgodności starszego workflow
+├── vite.config.mjs
+├── playwright.config.mjs
+├── netlify.toml               # build Vite i publikacja dist/
 ├── site.webmanifest
 ├── package.json
 └── LICENSE.md
@@ -95,7 +101,7 @@ Projekt nie deklaruje konkretnej wersji Node.js. Python 3 jest wymagany wyłącz
 npm run dev
 ```
 
-Serwer składa HTML, uruchamia witrynę pod `http://127.0.0.1:8181/`, otwiera przeglądarkę i obserwuje źródła. Zmiany zależne od assemblera wywołują ponownie `npm run build:html` przed odświeżeniem strony. Na tym porcie aplikacja usuwa wyłącznie własną lokalną rejestrację Service Workera i cache z prefiksem `lauren-english-v`, aby stan PWA nie zasłaniał zmian źródłowych.
+Serwer składa HTML, obsługuje kanoniczny root projektu — nie `dist/` — pod `http://127.0.0.1:8181/`, otwiera przeglądarkę i obserwuje źródła. Zmiany zależne od assemblera wywołują ponownie `npm run build:html` przed odświeżeniem strony. Na tym porcie aplikacja usuwa wyłącznie własną lokalną rejestrację Service Workera i cache z prefiksem `lauren-english-v`, aby stan PWA nie zasłaniał zmian źródłowych.
 
 W systemie Windows ten sam workflow można uruchomić przez `start-dev.bat`. Prosty statyczny podgląd jest dostępny przez:
 
@@ -105,19 +111,22 @@ npm run serve
 
 ### Dostępne skrypty
 
-- `npm run dev` — projektowy serwer Python z live reload na porcie `8181`;
-- `npm run serve` — uruchamia lokalny podgląd przez projektowy serwer Python;
-- `npm run build` — składa HTML i generuje `service-worker.js`;
+- `npm run dev` — uruchamia źródłowy serwer Python z live reload na porcie `8181`;
+- `npm run serve` — uruchamia prosty podgląd przez źródłowy serwer Python;
+- `npm run dev:vite` — składa HTML, przygotowuje publiczny staging i uruchamia developerski serwer Vite;
+- `npm run build:vite` — tworzy kompletny produkcyjny katalog `dist/` i generuje jego Service Workera;
+- `npm run prepare:vite-public` — odtwarza ignorowany staging `.vite-public/` dla zasobów kopiowanych bez transformacji;
+- `npm run check:vite` / `npm run check:pwa:vite` — sprawdza graf produkcyjny i kontrakt PWA wewnątrz `dist/`;
+- `npm run build` — zachowany rootowy build zgodności; nie definiuje aktywnego deploymentu produkcyjnego;
 - `npm run build:html` / `npm run check:html` — aktualizuje lub bez zapisu sprawdza regiony HTML oraz zasoby routingu;
-- `npm run build:sw` — waliduje precache i generuje Service Workera z deterministyczną rewizją cache;
+- `npm run build:sw` / `npm run build:sw:vite` — generuje odpowiednio rootowy worker zgodności lub produkcyjny `dist/service-worker.js`;
 - `npm run check:data` / `npm run check:content` — sprawdza dane pakietów i materiałów oraz integralność treści publicznych;
 - `npm run check:css` — sprawdza architekturę CSS, tokeny motywów i zdefiniowane pary kontrastu;
-- `npm run check:seo` / `npm run check:pwa` — sprawdza odpowiednio kontrakt metadanych i routingu oraz manifest, cache i zasoby PWA;
+- `npm run check:seo` / `npm run check:pwa` — sprawdza kontrakty źródłowych metadanych, routingu i PWA;
 - `npm run check:dev` — weryfikuje serwer lokalny, MIME, 404, live reload, rebuild HTML i lokalne czyszczenie PWA;
 - `npm run lint:js` — uruchamia ESLint dla kanonicznych źródeł JavaScript i modułów projektu;
-- `npm run test:e2e` — wykonuje build i pełny zestaw testów Playwright;
-- `npm run test:e2e:smoke`, `npm run test:e2e:interactions`, `npm run test:e2e:theme`, `npm run test:e2e:responsive`, `npm run test:e2e:seo`, `npm run test:e2e:pwa` — uruchamiają skupione zestawy przeglądarkowe;
-- `npm run build:css` / `npm run build:js` — odświeża pomocnicze pliki w `assets/build/`;
+- `npm run test:e2e` — buduje przez Vite, serwuje wyłącznie `dist/` i uruchamia pełny zestaw Playwright;
+- `npm run test:e2e:smoke`, `npm run test:e2e:interactions`, `npm run test:e2e:theme`, `npm run test:e2e:responsive`, `npm run test:e2e:seo`, `npm run test:e2e:pwa` — uruchamia skupione zestawy przeciwko `dist/`; `npm run test:e2e:pwa:vite` zachowuje izolowany kontrakt Vite PWA;
 - `npm run build:pwa-screenshots` — odtwarza screenshoty zadeklarowane w manifeście;
 - `npm run images` — generuje z kanonicznych oryginałów deterministyczne fallbacki JPEG oraz warianty AVIF i WebP dla skonfigurowanych obrazów treści;
 - `npm run check:images` — bez zapisu sprawdza zgodność wszystkich skonfigurowanych outputów obrazów z kanonicznymi oryginałami;
@@ -126,32 +135,38 @@ npm run serve
 ### Build produkcyjny
 
 ```powershell
-npm run build
+npm run build:vite
 ```
 
-Build działa bez katalogu `dist/`. `build:html` aktualizuje oznaczone regiony dwunastu samodzielnych dokumentów HTML oraz generuje `sitemap.xml`, `robots.txt` i `_redirects`. Następnie `build:sw` waliduje listę precache i tworzy `service-worker.js` na podstawie szablonu, konfiguracji PWA, wersji pakietu i fingerprintu zawartości.
+`build:vite` uruchamia kolejno assembler HTML, przygotowanie `.vite-public/`, wielostronicowy build Vite i generator Service Workera dla outputu. Powstaje dwanaście dokumentów HTML, haszowane bundle CSS i JavaScript w `dist/build/`, wymagane zasoby routingu i statyczne oraz `dist/service-worker.js` wyprowadzony z finalnego grafu.
 
-Aktualny runtime nadal korzysta z `/css/style.css` i `/js/main.js`. Śledzone pliki `assets/build/style.min.css` oraz `assets/build/main.min.js` są generowane wyłącznie przez jawne skrypty `build:css` i `build:js`; strony i precache ich nie używają. Wygenerowanych regionów oraz plików produkcyjnych nie należy poprawiać ręcznie.
+Kanoniczne źródła pozostają w rootowych plikach HTML oraz katalogach `css/`, `js/`, `scripts/` i `assets/image-sources/`. `dist/` jest ignorowanym, odtwarzalnym outputem publikacyjnym i nie należy edytować żadnego z jego plików ręcznie.
+
+`npm run check:vite` sprawdza strony, haszowane bundle, wymagane zasoby i brak ścieżek direct-source, a `npm run check:pwa:vite` sprawdza produkcyjny manifest, precache i worker. Rootowe `npm run build` oraz `npm run build:sw` pozostają workflow zgodności i nie są aktywnym buildem wdrożeniowym.
 
 ### Obrazy
 
 Kanoniczne, edytowalne oryginały skonfigurowanych obrazów rastrowych znajdują się w `assets/image-sources/`. Rejestr `scripts/image-config.mjs` mapuje je na publiczne ścieżki w `assets/img/` i obecnie obejmuje hero strony głównej, hero kontaktu oraz portret Lauren. Publiczne fallbacki JPEG oraz warianty AVIF i WebP są generowanymi outputami i nie należy edytować ich jako plików źródłowych.
 
-Uruchom `npm run images`, aby z kanonicznych oryginałów ponownie wygenerować skonfigurowane fallbacki JPEG oraz warianty AVIF i WebP w `assets/img/`. Skrypt najpierw sprawdza kompletność, odczyt i wymiary wszystkich kanonicznych źródeł; błąd preflight kończy działanie przed jakimkolwiek zapisem. Brakujący oryginał nigdy nie jest automatycznie odtwarzany z publicznego fallbacku. `npm run check:images` odtwarza oczekiwane outputy w pamięci i tylko do odczytu wykrywa brakujące lub niezgodne pliki; AVIF jest porównywany na zdekodowanych próbkach z ściśle określoną tolerancją, aby różnice między wersjami kodeka nie wymuszały zmian binarnych. W HTML używaj natywnego `<picture>` w kolejności AVIF, WebP, a następnie `<img>` z fallbackiem JPEG, zachowując atrybuty dostępności, wymiary i strategię ładowania. Generowanie obrazów pozostaje osobnym krokiem poza `npm run build`; publiczne outputy są celowo śledzone w repozytorium i należy je odświeżyć przez `npm run images` po zmianie kanonicznego oryginału.
+Uruchom `npm run images`, aby z kanonicznych oryginałów ponownie wygenerować skonfigurowane fallbacki JPEG oraz warianty AVIF i WebP w `assets/img/`. Skrypt najpierw sprawdza kompletność, odczyt i wymiary wszystkich kanonicznych źródeł; błąd preflight kończy działanie przed jakimkolwiek zapisem. Brakujący oryginał nigdy nie jest automatycznie odtwarzany z publicznego fallbacku. `npm run check:images` odtwarza oczekiwane outputy w pamięci i tylko do odczytu wykrywa brakujące lub niezgodne pliki; AVIF jest porównywany na zdekodowanych próbkach z ściśle określoną tolerancją, aby różnice między wersjami kodeka nie wymuszały zmian binarnych. W HTML używaj natywnego `<picture>` w kolejności AVIF, WebP, a następnie `<img>` z fallbackiem JPEG, zachowując atrybuty dostępności, wymiary i strategię ładowania. Generowanie obrazów pozostaje osobnym krokiem poza `npm run build:vite`; publiczne outputy są celowo śledzone w repozytorium i należy je odświeżyć przez `npm run images` po zmianie kanonicznego oryginału.
 
 ### Testy i walidacja
 
-Projekt udostępnia walidatory statyczne dla danych, publicznych treści, HTML, CSS, SEO, PWA i lokalnego workflow. Nie zastępują one testów przeglądarkowych.
+Projekt udostępnia walidatory statyczne dla danych, publicznych treści, HTML, CSS, SEO, źródłowego PWA i lokalnego workflow oraz osobne `check:vite` i `check:pwa:vite` dla wygenerowanego `dist/`. Nie zastępują one testów przeglądarkowych.
 
-Playwright uruchamia Chromium w projektach `1440 × 900` oraz `390 × 844`, z jednym workerem i Service Workerami domyślnie zablokowanymi. Osobny zestaw PWA włącza je w izolowanym kontekście. Testy obejmują główne trasy, wspólny shell, motywy, interakcje klawiaturowe, responsywność, routing, metadane, cache i zachowanie offline.
+Główna konfiguracja Playwrighta automatycznie uruchamia `npm run build:vite`, a następnie serwuje wyłącznie `dist/` przez Vite preview na porcie `4173`. Chromium działa w projektach `1440 × 900` oraz `390 × 844`, z jednym workerem i Service Workerami domyślnie zablokowanymi. Zestawy PWA włączają je jawnie; izolowany kontrakt Vite PWA używa osobnej konfiguracji na porcie `4274`.
+
+Dostępne pozostają pełny entrypoint oraz skupione zestawy smoke, interactions, theme, responsive, SEO i PWA. Testy obejmują trasy, wspólny shell, motywy, interakcje klawiaturowe, responsywność, metadane, finalne assety, cache i zachowanie offline.
 
 Wyniki wykonanych walidacji są dokumentowane w odpowiednim audycie lub zapisie wydania.
 
 ### Wdrożenie
 
-Publiczna wersja jest dostępna pod adresem wskazanym w sekcji „Wersja online”. Repozytorium nie zawiera `netlify.toml`; build zapisuje komplet publikowanych plików bezpośrednio w katalogu głównym zamiast w `dist/`.
+Publiczna wersja pozostaje dostępna pod adresem wskazanym w sekcji „Wersja online”. Rootowy `netlify.toml` definiuje `npm run build:vite` jako build oraz `dist` jako katalog publikacyjny.
 
-Przed publikacją należy odtworzyć zatwierdzony graf zależności poleceniem `npm ci`, a następnie uruchomić `npm run build`. Plik `_redirects` obsługuje alias `/thank-you`, a formularz w `kontakt.html` używa atrybutów Netlify Forms, honeypota `bot-field` i strony docelowej `/thank-you.html`.
+Deployment produkcyjny jest uruchamiany manualnie z terminala dla istniejącego projektu Netlify. Repozytorium nie definiuje automatycznego deploymentu po commitach lub pushach ani integracji continuous deployment z GitHubem.
+
+Przed manualną publikacją należy odtworzyć zatwierdzony graf zależności przez `npm ci`, zbudować i zweryfikować `dist/`, a następnie opublikować ten katalog bez ręcznej edycji. Skopiowany `_redirects` obsługuje alias `/thank-you`, a formularz w `dist/kontakt.html` zachowuje atrybuty Netlify Forms, honeypot `bot-field` i stronę docelową `/thank-you.html`.
 
 ### Dostępność
 
@@ -175,15 +190,15 @@ Projekt deklaruje cel WCAG 2.2 AA i implementuje konkretne mechanizmy wspierają
 
 `site.webmanifest` deklaruje tryb `standalone`, ikony `192 × 192` i `512 × 512`, trzy skróty oraz screenshoty dla szerokiego i wąskiego widoku. Service Worker jest rejestrowany po załadowaniu strony poza lokalnym środowiskiem na porcie `8181`.
 
-Precache obejmuje główne dokumenty, offline fallback, bezpośredni graf CSS i JavaScript, lokalne fonty, logo, ikony motywu i manifestu oraz wymagane obrazy. Nawigacja używa sieci w pierwszej kolejności, zachowuje rzeczywiste odpowiedzi HTTP i przy braku sieci zwraca kopię znanej strony albo `offline.html`. Aktywacja usuwa wyłącznie starsze cache z prefiksem projektu.
+Produkcyjny `dist/service-worker.js` jest generowany po buildzie Vite. Jego precache obejmuje wszystkie dwanaście opublikowanych dokumentów, odkryte haszowane assety runtime, lokalne fonty, branding, ikony motywu i manifestu oraz wymagane obrazy; screenshoty manifestu pozostają poza precache. Nawigacja używa sieci w pierwszej kolejności, zachowuje rzeczywiste odpowiedzi HTTP i przy braku sieci zwraca kopię znanego dokumentu albo `offline.html`. Aktywacja usuwa wyłącznie starsze cache z prefiksem projektu.
 
 ### Wydajność
 
 - runtime nie ma zależności frameworkowych ani zewnętrznych skryptów;
 - Inter i Literata są dostarczane lokalnie jako WOFF2 z `font-display: swap`, a head preloaduje tylko krytyczny plik Literata 700;
 - ważne obrazy mają jawne wymiary, hero korzysta z `fetchpriority="high"`, a obrazy poniżej pierwszego widoku mogą używać `loading="lazy"`;
-- `scripts/pwa-config.mjs` definiuje budżety liczby requestów i rozmiaru początkowych fontów oraz obrazu hero, sprawdzane przez `npm run check:pwa`;
-- pomocnicze bundle w `assets/build/` pozostają poza bieżącym grafem requestów i precache.
+- `scripts/pwa-config.mjs` centralizuje budżety fontów i obrazu hero, a produkcyjny graf jest sprawdzany przez walidatory Vite/PWA i skupione testy przeglądarkowe;
+- produkcja używa jednego haszowanego bundla CSS i jednego JavaScript z `/build/`, bez requestów do kanonicznych `/css/`, `/js/` lub wycofanego `assets/build/`.
 
 Sekcja opisuje zastosowane mechanizmy; repozytorium nie przechowuje wyniku Lighthouse ani innej aktualnej metryki wydajnościowej.
 
@@ -218,7 +233,7 @@ Pełne warunki, w których polska wersja jest rozstrzygająca, zawiera [LICENSE.
 
 Lauren English is a static multi-page educational website presenting an individual English-learning offer. The repository includes the homepage, services, packages, a materials catalogue, a browser-local progress journal, contact, legal documents, and technical pages for errors, offline mode, and form submission confirmation.
 
-Each route is a standalone HTML document. The shared shell, metadata, data-backed content, and Service Worker are assembled by static Node.js scripts. The browser loads the canonical `/css/style.css` and `/js/main.js` sources directly; the project uses neither a frontend framework nor SPA routing.
+Each route is a standalone HTML document. The shared shell, metadata, and data-backed content are assembled by static Node.js scripts. `npm run build:vite` creates the complete `dist/` output, where production HTML loads hashed CSS and JavaScript from `/build/` and the Service Worker consumes the final Vite graph. Canonical sources remain outside `dist/`; the project uses neither a frontend framework nor SPA routing.
 
 ### Live Version
 
@@ -238,11 +253,11 @@ Each route is a standalone HTML document. The shared shell, metadata, data-backe
 
 - **Runtime:** semantic HTML5, CSS, and Vanilla JavaScript using native ES modules;
 - **CSS:** design tokens, BEM, mobile-first layouts, PostCSS, `postcss-import`, and cssnano;
-- **Build:** static Node.js ESM scripts, esbuild for an auxiliary JavaScript bundle, and Sharp for images;
+- **Build:** static Node.js ESM scripts, multi-page Vite with PostCSS, and Sharp for images;
 - **Development:** npm with `package-lock.json` and a project-specific Python 3 live-reload server for local preview;
 - **Code quality:** ESLint, Prettier, and project validators for HTML, content, data, CSS, SEO, PWA, and the development workflow;
 - **Browser testing:** Playwright with Chromium desktop and mobile projects;
-- **Hosting integration:** Netlify Forms and `_redirects` rules.
+- **Hosting integration:** Netlify Forms, `_redirects` rules, and `netlify.toml` with manual `dist/` deployment.
 
 ### Architecture
 
@@ -251,9 +266,10 @@ Each route is a standalone HTML document. The shared shell, metadata, data-backe
 - `scripts/content-renderers.mjs` connects data from `js/data/` with marked package and material regions in HTML.
 - `css/style.css` preserves the `tokens → base → utilities → components → sections → pages` layer order.
 - `js/main.js` initializes isolated feature modules; each module guards its DOM queries and exits when its component is absent from the page.
-- `service-worker.template.js` and `scripts/pwa-config.mjs` are the sources for the generated `service-worker.js`.
+- `vite.config.mjs` derives twelve HTML inputs from the page registry and writes hashed production assets to `dist/build/`.
+- `service-worker.template.js`, `scripts/pwa-config.mjs`, and the final Vite graph are the sources for the production `dist/service-worker.js`.
 
-Root HTML files contain canonical page-specific content, but regions marked with `seo:*`, `shared-shell:*`, `package-*`, and `materials-*` comments must not be edited manually. `sitemap.xml`, `robots.txt`, `_redirects`, and `service-worker.js` are also generated by project scripts.
+Root HTML files contain canonical page-specific content, but regions marked with `seo:*`, `shared-shell:*`, `package-*`, and `materials-*` comments must not be edited manually. `sitemap.xml`, `robots.txt`, and `_redirects` are generated routing assets. `.vite-public/` is temporary staging, while the complete `dist/` directory—including HTML, bundles, and the Service Worker—is generated publish output and must not be maintained manually.
 
 ### Project Structure
 
@@ -278,11 +294,16 @@ Root HTML files contain canonical page-specific content, but regions marked with
 │   ├── pages/                 # page logic
 │   └── state/                 # safe browser-state operations
 ├── scripts/                   # assemblers, renderers, validators, and development server
-├── assets/                    # images, icons, fonts, PWA assets, and auxiliary builds
+├── assets/                    # source and public images, icons, fonts, and PWA assets
 ├── tests/e2e/                 # Playwright tests
 ├── docs/                      # architecture and workflow documentation
+├── .vite-public/              # generated Vite public staging
+├── dist/                      # generated publish directory
 ├── service-worker.template.js
-├── service-worker.js          # generated file
+├── service-worker.js          # root compatibility output for the older workflow
+├── vite.config.mjs
+├── playwright.config.mjs
+├── netlify.toml               # Vite build and dist/ publish contract
 ├── site.webmanifest
 ├── package.json
 └── LICENSE.md
@@ -307,7 +328,7 @@ The project does not declare a specific Node.js version. Python 3 is required on
 npm run dev
 ```
 
-The server assembles HTML, serves the website at `http://127.0.0.1:8181/`, opens a browser, and watches source files. Changes that depend on the assembler rerun `npm run build:html` before the page reloads. On this port, the application removes only its own local Service Worker registration and caches prefixed with `lauren-english-v`, preventing PWA state from masking source changes.
+The server assembles HTML, serves the canonical project root—not `dist/`—at `http://127.0.0.1:8181/`, opens a browser, and watches source files. Changes that depend on the assembler rerun `npm run build:html` before the page reloads. On this port, the application removes only its own local Service Worker registration and caches prefixed with `lauren-english-v`, preventing PWA state from masking source changes.
 
 On Windows, the same workflow can be started with `start-dev.bat`. A simple static preview is available through:
 
@@ -317,19 +338,22 @@ npm run serve
 
 ### Available Scripts
 
-- `npm run dev` — starts the project Python live-reload server on port `8181`;
-- `npm run serve` — starts a local preview through the project Python server;
-- `npm run build` — assembles HTML and generates `service-worker.js`;
+- `npm run dev` — starts the source-oriented Python live-reload server on port `8181`;
+- `npm run serve` — starts a simple preview through the source-oriented Python server;
+- `npm run dev:vite` — assembles HTML, prepares public staging, and starts the Vite development server;
+- `npm run build:vite` — creates the complete production `dist/` directory and generates its Service Worker;
+- `npm run prepare:vite-public` — recreates ignored `.vite-public/` staging for assets copied without transformation;
+- `npm run check:vite` / `npm run check:pwa:vite` — validates the production graph and PWA contract inside `dist/`;
+- `npm run build` — preserved root compatibility build; it does not define the active production deployment;
 - `npm run build:html` / `npm run check:html` — updates or read-only checks HTML regions and routing assets;
-- `npm run build:sw` — validates the precache and generates the Service Worker with a deterministic cache revision;
+- `npm run build:sw` / `npm run build:sw:vite` — generates the root compatibility worker or production `dist/service-worker.js`, respectively;
 - `npm run check:data` / `npm run check:content` — validates package and material data plus public-content integrity;
 - `npm run check:css` — checks CSS architecture, theme tokens, and defined contrast pairs;
-- `npm run check:seo` / `npm run check:pwa` — checks the metadata and routing contract, then the manifest, cache, and PWA assets;
+- `npm run check:seo` / `npm run check:pwa` — checks source metadata, routing, and PWA contracts;
 - `npm run check:dev` — verifies the local server, MIME types, 404 handling, live reload, HTML rebuilds, and local PWA cleanup;
 - `npm run lint:js` — runs ESLint for the project’s canonical JavaScript and module sources;
-- `npm run test:e2e` — runs the build and the complete Playwright suite;
-- `npm run test:e2e:smoke`, `npm run test:e2e:interactions`, `npm run test:e2e:theme`, `npm run test:e2e:responsive`, `npm run test:e2e:seo`, `npm run test:e2e:pwa` — run focused browser suites;
-- `npm run build:css` / `npm run build:js` — refresh the auxiliary files in `assets/build/`;
+- `npm run test:e2e` — builds through Vite, serves only `dist/`, and runs the complete Playwright suite;
+- `npm run test:e2e:smoke`, `npm run test:e2e:interactions`, `npm run test:e2e:theme`, `npm run test:e2e:responsive`, `npm run test:e2e:seo`, `npm run test:e2e:pwa` — run focused suites against `dist/`; `npm run test:e2e:pwa:vite` preserves the isolated Vite PWA contract;
 - `npm run build:pwa-screenshots` — recreates the screenshots declared by the manifest;
 - `npm run images` — generates deterministic JPEG fallbacks and AVIF and WebP variants for configured content images from canonical originals;
 - `npm run check:images` — read-only checks every configured image output against its canonical original;
@@ -338,32 +362,38 @@ npm run serve
 ### Production Build
 
 ```powershell
-npm run build
+npm run build:vite
 ```
 
-The build does not create a `dist/` directory. `build:html` updates marked regions in twelve standalone HTML documents and generates `sitemap.xml`, `robots.txt`, and `_redirects`. `build:sw` then validates the precache and creates `service-worker.js` from its template, the PWA configuration, the package version, and a content fingerprint.
+`build:vite` runs the HTML assembler, `.vite-public/` preparation, the multi-page Vite build, and the Service Worker generator for the output. It produces twelve HTML documents, hashed CSS and JavaScript bundles under `dist/build/`, required routing and static assets, and `dist/service-worker.js` derived from the final graph.
 
-The current runtime still uses `/css/style.css` and `/js/main.js`. Tracked files `assets/build/style.min.css` and `assets/build/main.min.js` are generated only by the explicit `build:css` and `build:js` scripts; pages and the precache do not use them. Generated regions and production files must not be edited manually.
+Canonical sources remain in the root HTML files and the `css/`, `js/`, `scripts/`, and `assets/image-sources/` directories. `dist/` is ignored, reproducible publish output, and none of its files should be edited manually.
+
+`npm run check:vite` validates pages, hashed bundles, required assets, and the absence of direct-source paths, while `npm run check:pwa:vite` validates the production manifest, precache, and worker. Root `npm run build` and `npm run build:sw` remain compatibility workflows and are not the active deployment build.
 
 ### Images
 
 Canonical editable originals for configured raster images live in `assets/image-sources/`. The `scripts/image-config.mjs` registry maps them to public paths under `assets/img/` and currently covers the homepage hero, contact hero, and Lauren portrait. Public JPEG fallbacks and AVIF and WebP variants are generated outputs and must not be edited as source files.
 
-Run `npm run images` to regenerate the configured JPEG fallbacks and AVIF and WebP variants under `assets/img/` from the canonical originals. The script first validates the presence, readability, and dimensions of every canonical source; a preflight error stops it before any write. A missing original is never recreated automatically from a public fallback. `npm run check:images` recreates expected outputs in memory and detects missing or mismatched files without writing; AVIF is compared as decoded samples with strict bounds so codec-version differences do not force binary churn. In HTML, use native `<picture>` in AVIF, WebP, then JPEG fallback `<img>` order while preserving accessibility attributes, dimensions, and loading strategy. Image generation remains a separate step outside `npm run build`; public outputs are intentionally tracked and must be refreshed through `npm run images` after a canonical original changes.
+Run `npm run images` to regenerate the configured JPEG fallbacks and AVIF and WebP variants under `assets/img/` from the canonical originals. The script first validates the presence, readability, and dimensions of every canonical source; a preflight error stops it before any write. A missing original is never recreated automatically from a public fallback. `npm run check:images` recreates expected outputs in memory and detects missing or mismatched files without writing; AVIF is compared as decoded samples with strict bounds so codec-version differences do not force binary churn. In HTML, use native `<picture>` in AVIF, WebP, then JPEG fallback `<img>` order while preserving accessibility attributes, dimensions, and loading strategy. Image generation remains a separate step outside `npm run build:vite`; public outputs are intentionally tracked and must be refreshed through `npm run images` after a canonical original changes.
 
 ### Testing and Validation
 
-The project provides static validators for data, public content, HTML, CSS, SEO, PWA, and the local workflow. They complement rather than replace browser tests.
+The project provides static validators for data, public content, HTML, CSS, SEO, the source PWA contract, and the local workflow, plus separate `check:vite` and `check:pwa:vite` commands for generated `dist/`. They complement rather than replace browser tests.
 
-Playwright runs Chromium projects at `1440 × 900` and `390 × 844`, with one worker and Service Workers blocked by default. A dedicated PWA suite enables them in an isolated context. Tests cover primary routes, the shared shell, themes, keyboard interactions, responsive behavior, routing, metadata, caching, and offline behavior.
+The main Playwright configuration automatically runs `npm run build:vite` and then serves only `dist/` through Vite preview on port `4173`. Chromium runs projects at `1440 × 900` and `390 × 844`, with one worker and Service Workers blocked by default. PWA suites enable them explicitly; the isolated Vite PWA contract uses a separate configuration on port `4274`.
+
+The complete entrypoint and focused smoke, interactions, theme, responsive, SEO, and PWA suites remain available. Tests cover routes, the shared shell, themes, keyboard interactions, responsive behavior, metadata, final assets, caching, and offline behavior.
 
 Results of completed validation are documented in the relevant audit or release record.
 
 ### Deployment
 
-The public deployment is available at the URL listed under “Live Version.” The repository does not contain `netlify.toml`; the build writes the complete publishable output directly to the repository root instead of `dist/`.
+The public deployment remains available at the URL listed under “Live Version.” Root `netlify.toml` defines `npm run build:vite` as the build command and `dist` as the publish directory.
 
-Before publishing, reproduce the committed dependency graph with `npm ci`, then run `npm run build`. `_redirects` handles the `/thank-you` alias, while the form in `kontakt.html` uses Netlify Forms attributes, the `bot-field` honeypot, and `/thank-you.html` as its destination.
+Production deployment is started manually from the terminal for the existing Netlify project. The repository defines neither commit- or push-triggered deployment nor GitHub-connected continuous deployment.
+
+Before manual publication, reproduce the committed dependency graph with `npm ci`, build and verify `dist/`, and then publish that directory without manual edits. The copied `_redirects` handles the `/thank-you` alias, while the form in `dist/kontakt.html` retains Netlify Forms attributes, the `bot-field` honeypot, and `/thank-you.html` as its destination.
 
 ### Accessibility
 
@@ -387,15 +417,15 @@ The project states WCAG 2.2 AA as a target and implements concrete mechanisms su
 
 `site.webmanifest` declares `standalone` display mode, `192 × 192` and `512 × 512` icons, three shortcuts, and screenshots for wide and narrow views. The Service Worker is registered after page load outside the local development environment on port `8181`.
 
-The precache includes primary documents, the offline fallback, the direct CSS and JavaScript graph, local fonts, branding, theme and manifest icons, and required images. Navigation is network-first, preserves real HTTP responses, and returns a cached known page or `offline.html` when the network is unavailable. Activation removes only older caches using the project prefix.
+Production `dist/service-worker.js` is generated after the Vite build. Its precache contains all twelve published documents, discovered hashed runtime assets, local fonts, branding, theme and manifest icons, and required images; manifest screenshots remain outside the precache. Navigation is network-first, preserves real HTTP responses, and returns a cached known document or `offline.html` when the network is unavailable. Activation removes only older caches using the project prefix.
 
 ### Performance
 
 - the runtime has no framework dependencies or external scripts;
 - Inter and Literata are served locally as WOFF2 with `font-display: swap`, while the head preloads only the critical Literata 700 file;
 - important images have explicit dimensions, the hero uses `fetchpriority="high"`, and below-the-fold images can use `loading="lazy"`;
-- `scripts/pwa-config.mjs` defines request-count and byte budgets for initial fonts and the hero image, validated by `npm run check:pwa`;
-- auxiliary bundles under `assets/build/` stay outside the current request graph and precache.
+- `scripts/pwa-config.mjs` centralizes font and hero-image budgets, while Vite/PWA validators and focused browser tests inspect the production graph;
+- production uses one hashed CSS and one JavaScript bundle from `/build/`, without requests to canonical `/css/`, `/js/`, or retired `assets/build/` paths.
 
 This section describes implemented mechanisms; the repository does not store a Lighthouse result or another current performance metric.
 

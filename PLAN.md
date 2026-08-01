@@ -14,7 +14,7 @@
 
 ## Current priorities
 
-1. `PH3-01` — Define the target Vite build contract without changing the current production workflow.
+1. `PH3-06` — Finalize documentation and migration verification.
 
 ## Planning basis
 
@@ -22,8 +22,8 @@
 - `docs/archive/audits/AUDIT-2026-07-26.md` records all eleven P1 and P2 findings as resolved and the project as ready within the verified scope.
 - `AUDIT.md` records the completed final technical audit dated 2026-07-31; all identified P1 and P2 findings are resolved, and the project is ready within the verified scope.
 - No active P0, P1, or P2 findings remain; current work is roadmap-driven rather than audit-remediation work.
-- The current production contract intentionally serves `/css/style.css` and `/js/main.js` directly until the separately planned Vite migration is complete.
-- The root publish directory and current Netlify workflow must remain unchanged until the Vite output, PWA graph, browser coverage, and deployment contract are verified together.
+- The active production build uses Vite to generate hashed CSS, JavaScript, and the final Service Worker inside the disposable `dist/` publish directory.
+- `netlify.toml` owns the manual Netlify build-and-publish contract; the source-oriented Python development workflow remains separate.
 - Resolved audit findings are not reopened without new current evidence.
 
 ## Verified completed baseline
@@ -160,8 +160,8 @@
 
 - [ ] **PH3-06 — Finalize documentation and migration verification**
 
-  - [ ] update `CONTEXT-PROJECT.md`, both README language sections, `docs/runtime-checklist.md`, and directly affected build documentation
-  - [ ] remove or revise documentation describing the retired direct-source production contract
+  - [x] update `CONTEXT-PROJECT.md`, both README language sections, `docs/runtime-checklist.md`, and directly affected build documentation
+  - [x] remove or revise documentation describing the retired direct-source production contract
   - [ ] verify a clean lockfile installation and the final production build
   - [ ] verify generated-output integrity, static validators, image parity, JavaScript linting, and focused PWA behavior
   - [ ] run the complete browser suite against the final publish output

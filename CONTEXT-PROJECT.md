@@ -55,7 +55,11 @@ The project uses:
 - token-first CSS
 - Vanilla JavaScript
 - modular JavaScript files
-- PostCSS, cssnano and esbuild for explicit legacy asset tasks only
+- Node.js ESM assembly and validation scripts
+- a Vite multi-page production build with PostCSS, `postcss-import`, and cssnano
+- Sharp image processing
+- a source-oriented Python 3 development server
+- Playwright browser verification
 - ESLint and Prettier
 - progressive enhancement
 - Service Worker and Web App Manifest
@@ -191,7 +195,11 @@ Do not add fake reviews, fabricated ratings, false business details, or unsuppor
 
 Prefer optimized local assets, responsive images, explicit image dimensions, lazy loading below the fold, minimal JavaScript, efficient CSS, limited font variants, and no unnecessary third-party scripts.
 
-Until the planned Vite migration, production pages load the canonical source entrypoints `/css/style.css` and `/js/main.js` directly. Browser-valid CSS imports and JavaScript modules form the runtime graph; preserved legacy outputs under `assets/build/` are not part of the current runtime contract.
+Canonical CSS and JavaScript remain under `css/` and `js/`. They are source entrypoints, not files maintained inside generated output.
+
+`npm run build:vite` assembles all twelve standalone HTML documents, stages approved public assets, and emits production HTML with hashed CSS and JavaScript under `dist/build/`.
+
+The deployed worker is generated as `dist/service-worker.js` from the final Vite asset graph. Direct `/css/` and `/js/` requests, the root generated worker, and retired `assets/build/` output are not part of the active production publish contract.
 
 PWA-related changes must consider:
 
@@ -218,11 +226,23 @@ Consent and legal copy must match the actual technical behavior of the website.
 
 Development changes must be made in source files.
 
-Do not manually edit minified CSS, minified JavaScript, generated build assets, generated image output, or cache-busted production files. The current normal build assembles standalone HTML and generates `service-worker.js`; direct CSS and JavaScript sources remain canonical runtime files.
+Canonical ownership remains with the root HTML documents, `css/`, `js/`, `scripts/`, configuration files, Service Worker template, and approved source assets. Generated regions must be refreshed through their owning scripts.
 
-Use project scripts to regenerate production assets.
+`npm run dev` remains the source-oriented Python workflow on port `8181`; it serves the project root with HTML assembly and live reload and does not serve `dist/`. Its local PWA cleanup is limited to the project registration and cache prefix.
 
-Run only the checks relevant to the task, such as linting, formatting, CSS and JavaScript builds, local runtime verification, responsive checks, accessibility checks, and service worker checks.
+`npm run build:vite` runs HTML assembly, stages approved root files and asset directories through the generated `.vite-public/` directory, builds all pages into `dist/`, and then generates `dist/service-worker.js` from the final hashed runtime graph.
+
+`dist/` is generated, ignored, disposable publish output. Do not manually edit its HTML, hashed bundles, Service Worker, copied assets, or other files.
+
+The root-oriented `npm run build` and `npm run build:sw` commands remain compatibility workflows until a later cleanup phase; they do not define the active production deployment.
+
+`npm run check:vite` validates the production page and asset graph, while `npm run check:pwa:vite` validates the generated Vite PWA contract.
+
+The main Playwright configuration runs `npm run build:vite` and serves only `dist/` through Vite preview. Ordinary suites block Service Workers; PWA coverage enables them explicitly.
+
+`netlify.toml` owns the production build command and publish directory. Deployment remains a manual terminal action against the existing Netlify project; commits and pushes do not trigger production deployment.
+
+Run only the checks relevant to the task, such as linting, formatting, source validation, generated-output checks, browser verification, accessibility checks, and Service Worker checks.
 
 Do not claim verification that was not performed.
 

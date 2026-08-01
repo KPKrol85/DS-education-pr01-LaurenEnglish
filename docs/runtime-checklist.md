@@ -3,31 +3,34 @@
 ## Build
 
 - Odtwórz zatwierdzony graf zależności z `package-lock.json`: `npm ci`.
-- Uruchom pełny build: `npm run build`.
+- Utwórz kompletny output publikacyjny: `npm run build:vite`.
+- Sprawdź dwanaście stron, haszowane bundle, zasoby i wykluczone ścieżki: `npm run check:vite`.
+- Sprawdź produkcyjny manifest, precache i Service Worker: `npm run check:pwa:vite`.
 - Sprawdź parity i semantykę wspólnego shellu: `npm run check:html`.
 - Sprawdź integralność publicznych treści i destinations: `npm run check:content`.
 - Sprawdź tokeny, selektory i kontrast obu motywów: `npm run check:css`.
 - Sprawdź routing, indeksowanie, metadane, JSON-LD, sitemapę i robots: `npm run check:seo`.
-- Sprawdź lifecycle PWA, manifest, precache i krytyczne zasoby: `npm run check:pwa`.
 - Sprawdź lokalny serwer, live reload i rebuild HTML: `npm run check:dev`.
 - Po celowej zmianie UI odtwórz aktualne screenshoty manifestu: `npm run build:pwa-screenshots`.
-- Potwierdź, że powstały:
-  - `service-worker.js`
-  - `assets/pwa/screenshots/home-desktop-1280x720.png`
-  - `assets/pwa/screenshots/home-mobile-720x1280.png`
-- Sprawdź, czy `service-worker.js` nie zawiera placeholderów, a rewizja cache ma postać `<version z package.json>-<12 znaków fingerprintu>`.
-- Potwierdź, że `npm run build` składa HTML i Service Worker bez tworzenia `dist/` oraz bez aktualizowania zachowanych outputów legacy w `assets/build/`.
+- Potwierdź, że `dist/` zawiera:
+  - wszystkie dokumenty z `ALL_PAGES` w `scripts/site-config.mjs`;
+  - dokładnie jeden haszowany bundle CSS i jeden JavaScript w `dist/build/`;
+  - wygenerowany `dist/service-worker.js`;
+  - `site.webmanifest`, `sitemap.xml`, `robots.txt`, `_redirects` i wymagane katalogi `dist/assets/`;
+  - screenshoty manifestu `dist/assets/pwa/screenshots/home-desktop-1280x720.png` i `dist/assets/pwa/screenshots/home-mobile-720x1280.png`.
+- Sprawdź, czy `dist/service-worker.js` nie zawiera placeholderów, a rewizja cache ma postać `<version z package.json>-<12 znaków fingerprintu>`.
+- Potwierdź, że `dist/` nie zawiera kanonicznych `css/`, `js/`, `scripts/`, `.vite-public/`, `assets/image-sources/`, lokalnej `.netlify/` ani raportów testowych.
+- Rootowe `npm run build`, `npm run build:sw` i `npm run check:pwa` pozostają kontraktem zgodności dla źródeł, a nie aktywnym workflow publikacji.
 
 ## Runtime assets
 
-- Otwórz każdy opublikowany dokument z `ALL_PAGES` w `scripts/site-config.mjs` (`index.html`, `uslugi.html`, `pakiety.html`, `materialy.html`, `postepy.html`, `kontakt.html`, `404.html`, `offline.html`, `thank-you.html`, `polityka-prywatnosci.html`, `regulamin.html`, `cookies.html`) i w DevTools → Network upewnij się, że:
-  - `/css/style.css` zwraca HTTP 200 z MIME `text/css`.
-  - `/js/main.js` zwraca HTTP 200 z MIME JavaScript i jest ładowane jako moduł.
-  - Pełne lokalne grafy z `RUNTIME_CSS_PATHS` i `RUNTIME_JAVASCRIPT_PATHS` w `scripts/pwa-config.mjs` ładują się bez 404, duplikatów i requestów zewnętrznych.
-  - Nie ma requestów do `/assets/build/style.min.css` ani `/assets/build/main.min.js`.
-  - `/assets/img/logo/logo.svg` zwraca HTTP 200 z MIME `image/svg+xml` i jest pobierane tylko raz mimo użycia w headerze i footerze.
-  - Fonty Inter 400/600/700 i Literata 700 ładują się z `/assets/fonts/` jako `font/woff2`, bez odpowiedzi 404, duplikatów i zewnętrznych requestów; Inter 500 nie jest requestowany, a jedyny preload wskazuje Literata 700.
-  - Konsola nie zawiera błędów modułów ani błędów ładowania zasobów.
+- Otwórz każdy opublikowany dokument z `ALL_PAGES` w `scripts/site-config.mjs` (`index.html`, `uslugi.html`, `pakiety.html`, `materialy.html`, `postepy.html`, `kontakt.html`, `404.html`, `offline.html`, `thank-you.html`, `polityka-prywatnosci.html`, `regulamin.html`, `cookies.html`) z serwera obsługującego `dist/` i w DevTools → Network upewnij się, że:
+  - dokument ładuje dokładnie jeden haszowany CSS i jeden moduł JavaScript z `/build/`; aktualne ścieżki należy odkrywać z outputu Vite, bez hardkodowania hashy;
+  - nie ma requestów do kanonicznych `/css/`, `/js/` ani wycofanego `/assets/build/`;
+  - `/assets/img/logo/logo.svg` zwraca HTTP 200 z MIME `image/svg+xml` i jest pobierane tylko raz mimo użycia w headerze i footerze;
+  - fonty Inter 400/600/700 i Literata 700 ładują się z `/assets/fonts/` jako `font/woff2`, bez odpowiedzi 404, duplikatów i zewnętrznych requestów; Inter 500 nie jest requestowany, a jedyny preload wskazuje Literata 700;
+  - manifest, obrazy, ikony i pozostałe zasoby z finalnego grafu zwracają właściwe statusy i MIME;
+  - konsola nie zawiera błędów modułów ani błędów ładowania zasobów.
 
 ## Lokalny development
 
@@ -36,7 +39,7 @@
 - Potwierdź automatyczne otwarcie przeglądarki, nagłówki `no-store`, poprawne MIME oraz projektowy `404.html` z prawdziwym statusem `404`.
 - Zmień zwykłe źródło CSS/JS i potwierdź pojedynczy reload. Następnie zmień zależność assemblera (`scripts/shared-shell.mjs`, konfigurację strony, renderer lub kanoniczne dane) i potwierdź, że `npm run build:html` kończy się przed reloadem.
 - Wymuś błąd assemblera wyłącznie w kontrolowanej lokalnej próbie: konsola ma pokazać błąd, reload ma zostać wstrzymany, a kolejna poprawna zmiana ma przywrócić workflow. Nie zostawiaj uszkodzonych źródeł.
-- Potwierdź brak pętli po outputach: watcher pomija `.git/`, `.codex/`, `.agents/`, `node_modules/`, raporty testowe, `assets/build/`, `service-worker.js` i pliki tymczasowe edytora.
+- Potwierdź brak pętli po outputach: watcher pomija `.git/`, `.codex/`, `.agents/`, `.vite-public/`, `dist/`, `node_modules/`, raporty testowe, `service-worker.js` i pliki tymczasowe edytora.
 - Na porcie `8181` potwierdź wyrejestrowanie wyłącznie `/service-worker.js` oraz usunięcie wyłącznie cache `lauren-english-v*`; obce rejestracje i cache muszą pozostać.
 
 ## Responsive smoke test
@@ -49,13 +52,13 @@
 
 - Odtwórz zatwierdzony graf zależności z `package-lock.json`: `npm ci`.
 - Zainstaluj Chromium: `npx playwright install chromium`.
-- Uruchom kompletny build i browser E2E: `npm run test:e2e`.
-- W razie potrzeby uruchom osobno: `test:e2e:smoke`, `test:e2e:interactions`, `test:e2e:theme` lub `test:e2e:responsive`; testy smoke i responsive chronią kontrakty współdzielonego logo, lokalnych fontów, MIME, rodzin typograficznych i polskich znaków.
-- Routing i metadane uruchom osobno przez `npm run test:e2e:seo`; wszystkie trasy z `INDEXABLE_PAGES` i wymagane zasoby muszą zwracać `200`, a nieznane ścieżki muszą zwracać projektowy dokument z HTTP `404`.
-- Lifecycle i offline uruchom osobno przez `npm run test:e2e:pwa`; tylko ten plik testowy włącza Service Workery, sprawdza skróty i wszystkie assety manifestu oraz sprząta stan.
+- Uruchom pełny zestaw przez `npm run test:e2e`; współdzielony serwer Playwrighta wykona `npm run build:vite` i poda wyłącznie `dist/` przez Vite preview na porcie `4173`.
+- W razie potrzeby uruchom osobno `npm run test:e2e:smoke`, `npm run test:e2e:interactions`, `npm run test:e2e:theme` lub `npm run test:e2e:responsive`; mapowania muszą pozostać zgodne z `package.json`.
+- Routing i metadane uruchom przez `npm run test:e2e:seo`; trasy z `INDEXABLE_PAGES` i wymagane zasoby muszą zwracać `200`, a nieznane ścieżki prawdziwy HTTP `404` bez fallbacku SPA.
+- Lifecycle i offline uruchom przez `npm run test:e2e:pwa`; izolowany kontrakt Vite PWA pozostaje dostępny jako `npm run test:e2e:pwa:vite` na porcie `4274`. Oba zestawy jawnie włączają Service Workery.
 - Widoki bazowe to Chromium desktop `1440 × 900` oraz mobile `390 × 844`; responsive suite dodatkowo sprawdza szerokości 320, 768 i 1024 px.
 - Raport HTML otwórz przez `npm run test:e2e:report`; lokalne `playwright-report/`, `test-results/` i `blob-report/` pozostają poza Git.
-- Zwykłe E2E używa izolowanych kontekstów i blokuje Service Workery, aby nie korzystać ze starego cache ani zapisanego stanu. `pwa.spec.mjs` jawnie używa `serviceWorkers: "allow"`.
+- Zwykłe E2E używa izolowanych kontekstów i blokuje Service Workery, aby nie korzystać ze starego cache ani zapisanego stanu; tylko zakres PWA przełącza `serviceWorkers` na `allow`.
 
 ## SEO i routing
 
@@ -68,31 +71,33 @@
 
 ## Service Worker i offline
 
-- `npm run build:sw` musi najpierw potwierdzić, że wszystkie ścieżki precache istnieją, są znormalizowane i unikalne, zawierają pełne grafy z `RUNTIME_CSS_PATHS` i `RUNTIME_JAVASCRIPT_PATHS` oraz nie wskazują na `assets/build/`.
+- `npm run build:sw:vite`, wywoływane przez `npm run build:vite`, generuje `dist/service-worker.js` dopiero po odkryciu finalnych assetów w `dist/build/`. Precache musi dokładnie łączyć `PUBLISHED_DOCUMENT_PATHS`, odkryte haszowane assety runtime i `STATIC_PRECACHE_PATHS`, bez ścieżek źródłowych lub developerskich.
 - Oczekuj jednego bieżącego cache `lauren-english-v<version>-<fingerprint>`. Identyczne wejścia nie zmieniają rewizji; zmiana szablonu, konfiguracji lub treści precache zmienia fingerprint.
 - Instalacja jest atomowa z perspektywy aktywnego workera: `skipWaiting` następuje dopiero po pełnym precache, a błąd usuwa niekompletny nowy cache. Aktywacja przejmuje klientów i usuwa wyłącznie starsze cache zaczynające się od `lauren-english-v`; inne cache originu muszą pozostać.
-- Online wszystkie trasy z `PRIMARY_DOCUMENT_PATHS`, wyprowadzone z `INDEXABLE_PAGES`, działają network-first. Tylko pełna, nieprzekierowana odpowiedź HTML `200` znanej trasy może odświeżyć jej wpis. Nieznana trasa online pozostaje realnym `404` i nie jest zapisywana.
-- Offline znana główna trasa korzysta ze swojej kopii precache. Inna nawigacja pokazuje `offline.html`; nie używaj homepage jako fallbacku.
-- Statyczne cache-first dotyczy wyłącznie jawnych assetów precache, w tym bezpośrednich źródeł CSS/JS, ikon instalacyjnych i trzech ikon skrótów, współdzielonego logo oraz fallbacków JPEG i wariantów AVIF/WebP obrazów treści wymaganych do kompletnych głównych stron offline. Strona katalogu materiałów i jej moduły danych są ujęte w grafie runtime/precache; screenshoty manifestu i outputy `assets/build/` nie są precachowane. Zapisywane są tylko same-origin żądania `GET` HTTP(S) z pełną odpowiedzią `200`; query string jest normalizowany do jednej ścieżki. Nie zapisuj `206`, 4xx/5xx, redirectów, opaque, cross-origin ani innych metod.
+- Online wszystkie trasy z `PUBLISHED_DOCUMENT_PATHS`, wyprowadzone z `ALL_PAGES`, działają network-first. Tylko pełna, nieprzekierowana odpowiedź HTML `200` znanej trasy może odświeżyć jej wpis. Nieznana trasa online pozostaje realnym `404` i nie jest zapisywana.
+- Offline każdy znany opublikowany dokument korzysta ze swojej kopii precache. Inna nawigacja pokazuje `offline.html`; nie używaj homepage jako fallbacku.
+- Statyczne cache-first dotyczy jawnych assetów finalnego precache, w tym haszowanych bundli Vite, ikon instalacyjnych i trzech ikon skrótów, współdzielonego logo, lokalnych fontów oraz wymaganych fallbacków JPEG i wariantów AVIF/WebP. Screenshoty manifestu, kanoniczne `/css/` i `/js/`, `.vite-public/`, `assets/image-sources/` i wycofane `assets/build/` nie są precachowane. Zapisywane są tylko same-origin żądania `GET` HTTP(S) z pełną odpowiedzią `200`; query string jest normalizowany do jednej ścieżki. Nie zapisuj `206`, 4xx/5xx, redirectów, opaque, cross-origin ani innych metod.
 
 ## Manifest i krytyczne zasoby
 
 - `/site.webmanifest` musi zwrócić `application/manifest+json`, zawierać komplet wymaganych pól, dokładnie trzy unikalne skróty do `/pakiety.html`, `/materialy.html` i `/postepy.html`, instalacyjne PNG `192 × 192` i `512 × 512` oraz screenshoty `1280 × 720` (`wide`) i `720 × 1280` (`narrow`). Wszystkie trasy i assety muszą zwracać `200`, a rozmiary i MIME muszą odpowiadać deklaracjom.
 - Nie deklaruj `maskable`, dopóki osobna ikona nie ma zweryfikowanej strefy bezpiecznej.
 - Hero ma używać `<picture>` z kolejnością AVIF, WebP i fallbackiem JPEG `/assets/img/hero/hero-01.jpg`; przeglądarka ma pobrać dokładnie jeden obsługiwany wariant o wymiarach `1600 × 1200`, z `loading="eager"`, `fetchpriority="high"` i bez przesunięcia layoutu.
-- Budżet krytyczny homepage musi odpowiadać `CRITICAL_ASSET_BUDGET` w `scripts/pwa-config.mjs`, w tym długościom grafów `RUNTIME_CSS_PATHS` i `RUNTIME_JAVASCRIPT_PATHS`, liczbie i limitowi bajtowemu fontów oraz limitowi obrazu hero; wymagane jest także zero requestów do `assets/build/`, zewnętrznych fontów i duplikatów.
+- Budżety fontów i obrazu hero muszą odpowiadać `CRITICAL_ASSET_BUDGET` w `scripts/pwa-config.mjs`. Produkcyjny request graph musi zawierać jeden haszowany CSS i jeden JavaScript z `/build/`, bez requestów do `/css/`, `/js/`, `assets/build/`, zewnętrznych fontów lub duplikatów.
 
 ## Netlify
 
-- Obecny build nie tworzy `dist/`. W panelu Netlify ustaw base directory na root repozytorium, build command na `npm run build`, a publish directory na `.`.
-- Repozytorium nie ma `netlify.toml`; nie zakładaj, że ustawienia panelu zostały zweryfikowane lokalnie.
-- Potwierdź, że publikowany root zawiera wszystkie dwanaście samodzielnych dokumentów z `ALL_PAGES`, katalogi `css/`, `js/`, `assets/`, wygenerowany `service-worker.js`, manifest, sitemapę, robots i wygenerowany `_redirects`.
-- Nie przełączaj publish directory na `dist/` przed osobną, ukończoną migracją do Vite.
+- Rootowy `netlify.toml` musi definiować `[build]`, `command = "npm run build:vite"` oraz `publish = "dist"` bez duplikowania reguł z `_redirects`.
+- Deployment produkcyjny pozostaje manualną czynnością terminalową wobec istniejącego projektu i adresu. Commity ani pushe nie uruchamiają deploymentu, a repozytorium nie konfiguruje GitHub continuous deployment, branch deployów ani workflow GitHub Actions.
+- `.netlify/` pozostaje lokalne i ignorowane; nie zapisuj w śledzonej konfiguracji identyfikatorów witryny, tokenów, credentials ani metadanych linkowania.
+- Potwierdź, że `dist/` zawiera wszystkie dwanaście dokumentów z `ALL_PAGES`, haszowane `build/`, wymagane `assets/`, `dist/service-worker.js`, manifest, sitemapę, robots i `_redirects`.
+- Potwierdź, że `dist/kontakt.html` zachowuje `data-netlify="true"`, honeypot `bot-field`, ukryte `form-name` i action `/thank-you.html`.
+- Nie publikuj rootowych źródeł, `.vite-public/`, `assets/image-sources/`, lokalnej konfiguracji, testów ani raportów przeglądarkowych.
 
 ## Manualna kontrola po wdrożeniu
 
 - W bezpiecznym kontekście HTTPS otwórz DevTools → Application → Service Workers i potwierdź aktywny `/service-worker.js`, właściwy scope `/` oraz kontrolę strony po odświeżeniu.
 - Kliknij **Update**, odśwież i potwierdź, że po aktywacji pozostaje jeden cache `lauren-english-v*`; cache o innej nazwie testowej nie może zostać usunięty.
-- Przy połączeniu online potwierdź `200` wszystkich tras z `PRIMARY_DOCUMENT_PATHS` i prawdziwy `404` dla nieznanej trasy. Następnie włącz Offline i sprawdź ten sam zestaw tras oraz osobny fallback nieznanej trasy.
-- W Network potwierdź budżet krytycznych zasobów z `CRITICAL_ASSET_BUDGET`, brak `inter-500.woff2`, brak requestów `/assets/build/` oraz brak błędów konsoli, strony i zasobów.
+- Przy połączeniu online potwierdź `200` wszystkich tras z `PUBLISHED_DOCUMENT_PATHS` i prawdziwy `404` dla nieznanej trasy. Następnie włącz Offline i sprawdź ten sam zestaw tras oraz osobny fallback nieznanej trasy.
+- W Network potwierdź jeden haszowany CSS i JavaScript z `/build/`, budżety z `CRITICAL_ASSET_BUDGET`, brak `inter-500.woff2`, brak requestów `/css/`, `/js/` i `/assets/build/` oraz brak błędów konsoli, strony i zasobów.
 - Nie deklaruj zweryfikowanego browser install prompt na podstawie samych testów localhost; lokalnie potwierdzane są manifest, ikony, bezpieczny kontekst, rejestracja, aktywacja, kontrola i cache.
