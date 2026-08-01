@@ -3,11 +3,15 @@ import { readFile, readdir, stat } from "node:fs/promises";
 import { extname, resolve } from "node:path";
 
 import {
+  DIST_OUTPUT_PATH,
+  DIST_ROOT,
   OUTPUT_PATH,
   ROOT,
   TEMPLATE_PATH,
   createCacheRevision,
   createServiceWorkerBuild,
+  createViteServiceWorkerBuild,
+  discoverViteRuntimePaths,
 } from "./build-service-worker.mjs";
 import {
   BRAND_LOGO_PATH,
@@ -23,11 +27,14 @@ import {
   MANIFEST_SCREENSHOT_PATHS,
   OFFLINE_PATH,
   PRECACHE_PATHS,
+  PUBLISHED_DOCUMENT_PATHS,
   PRIMARY_DOCUMENT_PATHS,
   RUNTIME_CSS_PATHS,
   RUNTIME_JAVASCRIPT_PATHS,
   SHORTCUT_ICON_PATHS,
+  STATIC_PRECACHE_PATHS,
   THEME_ICON_PATHS,
+  normalizePublicPath,
 } from "./pwa-config.mjs";
 import {
   CONTENT_IMAGE_ASSETS,
@@ -40,9 +47,36 @@ const assert = (condition, message) => {
   if (!condition) throw new Error(message);
 };
 
+const VITE_MODE_ARGUMENT = "--vite";
+const argumentsList = process.argv.slice(2);
+assert(
+  argumentsList.length === 0 ||
+    (argumentsList.length === 1 && argumentsList[0] === VITE_MODE_ARGUMENT),
+  `Usage: node scripts/check-pwa.mjs [${VITE_MODE_ARGUMENT}]`,
+);
+
+const isViteMode = argumentsList[0] === VITE_MODE_ARGUMENT;
+const validationTarget = Object.freeze(
+  isViteMode
+    ? {
+        label: "Vite PWA",
+        publishRoot: DIST_ROOT,
+        outputPath: DIST_OUTPUT_PATH,
+        createBuild: createViteServiceWorkerBuild,
+        rebuildCommand: "npm run build:vite",
+      }
+    : {
+        label: "PWA",
+        publishRoot: ROOT,
+        outputPath: OUTPUT_PATH,
+        createBuild: createServiceWorkerBuild,
+        rebuildCommand: "npm run build:sw",
+      },
+);
+
 const countOccurrences = (source, value) => source.split(value).length - 1;
 const readText = (path) => readFile(path, "utf8");
-const publicFile = (path) => resolve(ROOT, `.${path}`);
+const publicFile = (path) => resolve(validationTarget.publishRoot, `.${path}`);
 const sha256 = (buffer) =>
   createHash("sha256").update(buffer).digest("hex").toUpperCase();
 const normalizeUnicodeRange = (unicodeRange) =>
@@ -241,9 +275,11 @@ const getCssFiles = async (directory) => {
 
 const verifyFontLicenseCoverage = async () => {
   const fontDirectory = resolve(ROOT, "assets/fonts");
-  const distributedFontFiles = (await readdir(fontDirectory, {
-    withFileTypes: true,
-  }))
+  const distributedFontFiles = (
+    await readdir(fontDirectory, {
+      withFileTypes: true,
+    })
+  )
     .filter((entry) => entry.isFile() && extname(entry.name) === ".woff2")
     .map(({ name }) => name)
     .sort();
@@ -366,9 +402,9 @@ const verifyRuntimeAssetGraphs = async () => {
 const verifyServiceWorker = async () => {
   const [firstBuild, secondBuild, generatedSource, template, packageJson] =
     await Promise.all([
-      createServiceWorkerBuild(),
-      createServiceWorkerBuild(),
-      readText(OUTPUT_PATH),
+      validationTarget.createBuild(),
+      validationTarget.createBuild(),
+      readText(validationTarget.outputPath),
       readText(TEMPLATE_PATH),
       readText(resolve(ROOT, "package.json")).then(JSON.parse),
     ]);
@@ -380,7 +416,7 @@ const verifyServiceWorker = async () => {
   );
   assert(
     generatedSource === firstBuild.source,
-    "Generated service-worker.js is stale; run npm run build:sw",
+    `Generated ${validationTarget.label} service-worker.js is stale; run ${validationTarget.rebuildCommand}`,
   );
   assert(
     !/__[A-Z0-9_]+__/.test(generatedSource),
@@ -407,6 +443,8 @@ const verifyServiceWorker = async () => {
     version: packageJson.version,
     template,
     precacheFiles: changedFiles,
+    precachePaths: firstBuild.precachePaths,
+    primaryDocumentPaths: firstBuild.primaryDocumentPaths,
   });
   assert(
     changedRevision !== firstBuild.revision,
@@ -428,6 +466,12 @@ const verifyServiceWorker = async () => {
     "await caches.delete(CACHE_NAME)",
     "cacheName.startsWith(CACHE_PREFIX)",
     "cacheName !== CACHE_NAME",
+    "const handleNavigation = async (request)",
+    "const response = await fetch(request)",
+    'request.mode === "navigate"',
+    "const cachedPrimary = isPrimaryDocument",
+    "await cache.match(normalizedPath)",
+    "await cache.match(OFFLINE_PATH)",
   ];
   for (const requirement of lifecycleRequirements) {
     assert(
@@ -825,7 +869,102 @@ const verifyProductionAssetContract = async () => {
   }
 };
 
-const run = async () => {
+const verifyVitePrecacheContract = async (build) => {
+  const runtimePaths = await discoverViteRuntimePaths(DIST_ROOT);
+  const expectedPrecachePaths = [
+    ...PUBLISHED_DOCUMENT_PATHS,
+    ...runtimePaths,
+    ...STATIC_PRECACHE_PATHS,
+  ];
+
+  assertUniquePaths(expectedPrecachePaths, "Vite precache contract");
+  assert(
+    PUBLISHED_DOCUMENT_PATHS.length === ALL_PAGES.length &&
+      PUBLISHED_DOCUMENT_PATHS.every(
+        (path, index) => path === `/${ALL_PAGES[index].file}`,
+      ),
+    "Vite published documents must match the complete site page registry",
+  );
+  assert(
+    build.primaryDocumentPaths.join("\n") ===
+      PUBLISHED_DOCUMENT_PATHS.join("\n"),
+    "Vite known-document policy must contain all published HTML documents",
+  );
+  assert(
+    build.precachePaths.join("\n") === expectedPrecachePaths.join("\n"),
+    "Vite precache must exactly match published documents, discovered build assets, and canonical static assets",
+  );
+  assert(
+    build.precacheFiles.map(({ publicPath }) => publicPath).join("\n") ===
+      expectedPrecachePaths.join("\n"),
+    "Vite precache entries must resolve to the exact generated publish files",
+  );
+
+  for (const path of build.precachePaths) {
+    const url = new URL(path, "https://pwa.local");
+    assert(
+      path.startsWith("/") &&
+        !path.startsWith("//") &&
+        !path.includes("?") &&
+        !path.includes("#") &&
+        url.origin === "https://pwa.local" &&
+        normalizePublicPath(path) === path,
+      `Vite precache path must be normalized, root-relative, and same-origin compatible: ${path}`,
+    );
+  }
+
+  assert(
+    PUBLISHED_DOCUMENT_PATHS.includes(OFFLINE_PATH) &&
+      PUBLISHED_DOCUMENT_PATHS.every((path) =>
+        build.precachePaths.includes(path),
+      ),
+    "Vite precache must contain the offline page and all published documents",
+  );
+  assert(
+    runtimePaths.every((path) => build.precachePaths.includes(path)),
+    "Vite precache must contain every discovered hashed runtime asset",
+  );
+  assert(
+    STATIC_PRECACHE_PATHS.every((path) => build.precachePaths.includes(path)),
+    "Vite precache must contain every canonical static asset",
+  );
+  assert(
+    MANIFEST_SCREENSHOT_PATHS.every(
+      (path) => !build.precachePaths.includes(path),
+    ),
+    "Install screenshots must remain outside the Vite offline precache",
+  );
+
+  const forbiddenPaths = new Set([
+    CSS_ENTRY_PATH,
+    JAVASCRIPT_ENTRY_PATH,
+    "/service-worker.js",
+    "/service-worker.template.js",
+    "/package.json",
+  ]);
+  const forbiddenPrefixes = [
+    "/.vite-public/",
+    "/assets/build/",
+    "/assets/image-sources/",
+    "/css/",
+    "/js/",
+    "/scripts/",
+  ];
+  const forbiddenEntries = build.precachePaths.filter(
+    (path) =>
+      forbiddenPaths.has(path) ||
+      forbiddenPrefixes.some((prefix) => path.startsWith(prefix)) ||
+      path.endsWith(".map"),
+  );
+  assert(
+    forbiddenEntries.length === 0,
+    `Vite precache contains source, generated-worker, or development-only paths: ${forbiddenEntries.join(", ")}`,
+  );
+
+  return runtimePaths;
+};
+
+const runRoot = async () => {
   const [build, manifest, criticalAssets, , runtimeGraphs] = await Promise.all([
     verifyServiceWorker(),
     verifyManifestAndIcons(),
@@ -878,7 +1017,21 @@ const run = async () => {
   );
 };
 
+const runVite = async () => {
+  const [build, manifest] = await Promise.all([
+    verifyServiceWorker(),
+    verifyManifestAndIcons(),
+  ]);
+  const runtimePaths = await verifyVitePrecacheContract(build);
+
+  console.log(
+    `Verified Vite PWA cache ${build.cacheName}, ${build.precachePaths.length} precache entries, ${build.primaryDocumentPaths.length} published documents, ${runtimePaths.length} hashed runtime assets, ${manifest.icons.length} install icons, ${manifest.shortcuts.length} shortcuts, and ${manifest.screenshots.length} screenshots.`,
+  );
+};
+
+const run = isViteMode ? runVite : runRoot;
+
 run().catch((error) => {
-  console.error(`PWA check failed: ${error.message}`);
+  console.error(`${validationTarget.label} check failed: ${error.message}`);
   process.exitCode = 1;
 });

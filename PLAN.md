@@ -117,14 +117,23 @@
   - **Depends on:** `PH3-02`
   - **Completion condition:** the isolated publish output uses one consistent Vite-generated production asset graph while canonical source ownership remains clear
 
-- [ ] **PH3-04 — Integrate the PWA and Service Worker with the publish output**
+- [x] **PH3-04 — Integrate the PWA and Service Worker with the publish output**
 
-  - [ ] adapt `scripts/pwa-config.mjs`, `scripts/build-service-worker.mjs`, and `scripts/check-pwa.mjs` to derive and validate the final built asset graph
-  - [ ] generate the Service Worker inside the dedicated publish directory
-  - [ ] preserve deterministic cache versioning and scoped stale-cache cleanup
-  - [ ] preserve same-origin request eligibility, network-first navigation, offline fallback, and known-page coverage
-  - [ ] include all required built CSS, JavaScript, fonts, images, icons, manifest assets, pages, and offline resources
-  - [ ] confirm that source and generated Service Worker ownership remains explicit
+  - **Verified implementation:**
+    - `npm run build:vite` generates `dist/service-worker.js` after discovering the final hashed Vite runtime graph
+    - the Vite Service Worker derives all twelve published documents, hashed runtime bundles, and canonical static assets from executable registries
+    - the generated worker contains 37 validated precache entries with deterministic content-derived cache versioning and scoped stale-cache cleanup
+    - shared validation preserves same-origin GET eligibility, network-first navigation, known-page caching, offline fallback, and complete-response cache rules
+    - `npm run check:pwa:vite` validates the built PWA contract without changing the existing root `npm run check:pwa` workflow
+    - one isolated Chromium test confirms the exact Vite precache, an unvisited published document offline, and the offline fallback for an unknown navigation
+    - `npm run build:vite`, `npm run check:vite`, `npm run check:pwa:vite`, and `npm run check:pwa` pass; the focused Vite PWA browser test passes with 1 test
+
+  - [x] adapt `scripts/pwa-config.mjs`, `scripts/build-service-worker.mjs`, and `scripts/check-pwa.mjs` to derive and validate the final built asset graph
+  - [x] generate the Service Worker inside the dedicated publish directory
+  - [x] preserve deterministic cache versioning and scoped stale-cache cleanup
+  - [x] preserve same-origin request eligibility, network-first navigation, offline fallback, and known-page coverage
+  - [x] include all required built CSS, JavaScript, fonts, images, icons, manifest assets, pages, and offline resources
+  - [x] confirm that source and generated Service Worker ownership remains explicit
   - **Depends on:** `PH3-03`
   - **Completion condition:** the publish directory contains a generated and validated Service Worker that consumes the Vite-built graph and preserves the existing PWA behavior
 
