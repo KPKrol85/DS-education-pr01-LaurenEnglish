@@ -145,7 +145,7 @@ Projekt udostępnia walidatory statyczne dla danych, publicznych treści, HTML, 
 
 Playwright uruchamia Chromium w projektach `1440 × 900` oraz `390 × 844`, z jednym workerem i Service Workerami domyślnie zablokowanymi. Osobny zestaw PWA włącza je w izolowanym kontekście. Testy obejmują główne trasy, wspólny shell, motywy, interakcje klawiaturowe, responsywność, routing, metadane, cache i zachowanie offline.
 
-To zadanie dokumentacyjne nie uruchamiało buildów, walidatorów ani testów, dlatego README nie deklaruje ich aktualnego wyniku.
+Wyniki wykonanych walidacji są dokumentowane w odpowiednim audycie lub zapisie wydania.
 
 ### Wdrożenie
 
@@ -357,7 +357,7 @@ The project provides static validators for data, public content, HTML, CSS, SEO,
 
 Playwright runs Chromium projects at `1440 × 900` and `390 × 844`, with one worker and Service Workers blocked by default. A dedicated PWA suite enables them in an isolated context. Tests cover primary routes, the shared shell, themes, keyboard interactions, responsive behavior, routing, metadata, caching, and offline behavior.
 
-This documentation-only task did not run builds, validators, or tests, so the README does not claim a current passing result.
+Results of completed validation are documented in the relevant audit or release record.
 
 ### Deployment
 

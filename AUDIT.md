@@ -68,6 +68,9 @@ None detected.
 
 ### [P1-01] Progress-journal fixtures invalidate reload and focus verification
 
+**Status:** Resolved
+
+- **Resolution evidence:** The focused progress-journal suite passed with 8 tests, and the complete Playwright suite passed with 77 passed, 9 skipped, and 0 failed.
 - **Classification:** Contract mismatch
 - **Affected area:** Playwright test architecture, progress-journal persistence and focus verification
 - **Evidence:** `tests/e2e/progress-journal.spec.mjs:29-31`, `tests/e2e/progress-journal.spec.mjs:44-53`, `tests/e2e/progress-journal.spec.mjs:83-117`, `tests/e2e/progress-journal.spec.mjs:145-173`
@@ -80,6 +83,9 @@ None detected.
 
 ### [P2-01] README contains transient task-verification commentary
 
+**Status:** Resolved
+
+- **Resolution evidence:** The Polish and English testing sections retain factual parity and now direct readers to the relevant audit or release record for execution results.
 - **Classification:** Documentation mismatch
 - **Affected area:** Bilingual repository documentation, testing status
 - **Evidence:** `README.md:148`, `README.md:360`
