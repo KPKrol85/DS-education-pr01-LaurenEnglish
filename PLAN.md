@@ -137,15 +137,24 @@
   - **Depends on:** `PH3-03`
   - **Completion condition:** the publish directory contains a generated and validated Service Worker that consumes the Vite-built graph and preserves the existing PWA behavior
 
-- [ ] **PH3-05 — Align development, Playwright, and Netlify workflows**
+- [x] **PH3-05 — Align development, Playwright, and Netlify workflows**
+
+  - **Verified implementation:**
+    - the source-oriented Python development workflow remains available on port `8181` with HTML assembly, live reload, and project-scoped local PWA cleanup
+    - Playwright runs `npm run build:vite` and serves only `dist/` through the shared Vite preview contract while retaining the complete and focused browser entrypoints
+    - `netlify.toml` defines `npm run build:vite` and `dist` as the repository-owned build and publish contract for manual terminal deployment to the existing Netlify project
+    - no GitHub continuous deployment, branch deployment, tracked site identifier, credential, or duplicated redirect configuration was introduced
+    - the publish output contains all twelve HTML documents, Netlify Forms markup, `_redirects`, technical pages, manifest files, the generated Service Worker, hashed runtime bundles, and required static assets
+    - canonical source, local configuration, and test-output paths remain outside `dist/`; the existing root-oriented build commands remain available for the later cleanup phase
+    - `npm run build:vite`, `npm run check:vite`, and `npm run check:pwa:vite` pass; the focused smoke suite passes with 14 tests, and no Netlify deployment was executed
 
   - [x] preserve the source-oriented Python development workflow or replace it only with one reviewed equivalent
   - [x] preserve live reload, HTML assembly, and local PWA cleanup during development
   - [x] make Playwright serve and verify the dedicated publish directory
   - [x] retain focused and complete browser-suite entrypoints
-  - [ ] define the repository-owned Netlify build command and publish directory
-  - [ ] keep the root publishing workflow active until the isolated build, PWA graph, and browser coverage pass together
-  - [ ] switch Netlify publishing only after the complete migration contract is verified
+  - [x] define the repository-owned Netlify build command and publish directory
+  - [x] keep the root publishing workflow active until the isolated build, PWA graph, and browser coverage pass together
+  - [x] switch Netlify publishing only after the complete migration contract is verified
   - **Depends on:** `PH3-04`
   - **Completion condition:** development remains reliable, Playwright verifies the final publish output, and Netlify has one explicit Vite build-and-publish contract
 
