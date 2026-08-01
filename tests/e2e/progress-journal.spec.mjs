@@ -27,7 +27,7 @@ const freezeDate = (page) =>
   }, FROZEN_TIMESTAMP);
 
 const seedProgress = (page, state) =>
-  page.addInitScript(
+  page.evaluate(
     ({ key, value }) => localStorage.setItem(key, JSON.stringify(value)),
     { key: STORAGE_KEY, value: state },
   );
@@ -44,10 +44,17 @@ test.beforeEach(async ({ page }) => {
 test("persists goal and check-in changes while preserving focus and live status", async ({
   page,
 }) => {
+  await seedProgress(page, {
+    goals: { ...DEFAULT_GOALS },
+    checkIns: {},
+    updatedAt: new Date(FROZEN_TIMESTAMP).toISOString(),
+  });
   const diagnostics = collectRuntimeDiagnostics(page);
   await openJournal(page);
 
   const goal = page.getByLabel("Cel na ten tydzień").first();
+  await goal.focus();
+  await expect(goal).toBeFocused();
   await goal.selectOption("5");
   await expect(goal).toHaveValue("5");
   await expect(goal).toBeFocused();
@@ -172,6 +179,12 @@ test("reset clears persisted data and restores the initial journal contract", as
   await expect(page.getByLabel("Cel na ten tydzień").first()).toHaveValue(
     String(DEFAULT_GOALS.vocab),
   );
+  await expect(
+    page.getByRole("button", { name: /Dzisiejsza sesja — Słownictwo/ }),
+  ).toHaveAttribute("aria-pressed", "false");
+  expect(
+    await page.evaluate((key) => localStorage.getItem(key), STORAGE_KEY),
+  ).toBeNull();
 });
 
 test("remains usable with blocked local storage and uses the in-memory fallback", async ({

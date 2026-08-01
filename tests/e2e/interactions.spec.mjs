@@ -325,10 +325,18 @@ test("project anchor targets clear the sticky header", async ({ page }) => {
   const mobileToggle = page.locator(".nav__toggle");
   if (await mobileToggle.isVisible()) await mobileToggle.click();
   const aboutLink = page.locator('.nav__link[href="/index.html#about"]');
+  await expect(aboutLink).toHaveCount(1);
+  await expect(aboutLink).toBeVisible();
+  await expect(aboutLink).toBeEnabled();
   await aboutLink.focus();
-  await page.keyboard.press("Enter");
+  await expect(aboutLink).toBeFocused();
+  await Promise.all([
+    page.waitForURL(/\/index\.html#about$/),
+    page.keyboard.press("Enter"),
+  ]);
   await expect(page).toHaveURL(/\/index\.html#about$/);
   await page.waitForLoadState("networkidle");
+  await expectAnchorToClearHeader(page, "about");
   await expectCompactHomepageAnchorFocus(page, "about");
 
   await page.goto("/uslugi.html", { waitUntil: "networkidle" });
