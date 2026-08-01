@@ -218,7 +218,7 @@ ${HEAD_SECTION_COMMENTS.seo}
     <meta name="description" content="${page.description}" />
     <link rel="canonical" href="${canonical}" />
 ${HEAD_SECTION_COMMENTS.appMetadata}
-    <link rel="manifest" href="${SITE.manifest.path}" />
+    <link rel="manifest" href="${SITE.manifest.path}" vite-ignore />
     <link rel="icon" href="${SITE.favicon.path}" type="${SITE.favicon.type}" />
 ${HEAD_SECTION_COMMENTS.fonts}
     <link rel="preload" href="${SITE.headingFont.path}" as="font" type="${SITE.headingFont.type}" crossorigin />
@@ -257,7 +257,7 @@ ${HEAD_SECTION_COMMENTS.seo}
     <title>${page.title}</title>
     <meta name="robots" content="noindex, nofollow" />
 ${HEAD_SECTION_COMMENTS.appMetadata}
-    <link rel="manifest" href="${SITE.manifest.path}" />
+    <link rel="manifest" href="${SITE.manifest.path}" vite-ignore />
     <link rel="icon" href="${SITE.favicon.path}" type="${SITE.favicon.type}" />
 ${HEAD_SECTION_COMMENTS.fonts}
     <link rel="preload" href="${SITE.headingFont.path}" as="font" type="${SITE.headingFont.type}" crossorigin />

@@ -52,25 +52,37 @@
 
 **Goal:** Replace direct-source production delivery with a verified Vite multi-page build while preserving the current product, accessibility, routing, PWA, testing, and deployment behavior.
 
-- [ ] **PH3-01 — Define the target Vite build contract**
+- [x] **PH3-01 — Define the target Vite build contract**
 
-  - [ ] inspect the current HTML assembly, route registry, asset graph, Service Worker generation, Playwright server, and Netlify workflow
-  - [ ] define the dedicated publish directory and its required twelve-page output
-  - [ ] define which files remain canonical source and which files become generated production output
-  - [ ] define how `scripts/build-html.mjs` and `scripts/site-config.mjs` run before Vite bundling
-  - [ ] define how static route assets, legal pages, utility pages, Netlify Forms markup, sitemap, robots, and `_redirects` reach the publish directory
-  - [ ] define the migration boundary without changing the current production, PWA, Playwright, or Netlify contracts
+  - **Target contract:**
+    - `scripts/build-html.mjs` assembles the twelve canonical HTML pages and route assets before Vite runs
+    - `ALL_PAGES` remains the single source of truth for all twelve Vite HTML inputs
+    - canonical CSS, JavaScript, images, icons, fonts, and configuration remain outside generated output
+    - Vite writes the complete production website to `dist/`
+    - generated CSS and JavaScript use hashed files inside `dist/build/`
+    - runtime asset directories `favicon`, `fonts`, `icons`, `img`, `og`, and `pwa` are copied to `dist/assets/`
+    - `assets/build/` and `assets/image-sources/` are not published
+    - `site.webmanifest`, `sitemap.xml`, `robots.txt`, and `_redirects` are copied to the root of `dist/`
+    - `service-worker.template.js` remains source-only; `service-worker.js` will later be generated inside `dist/`
+    - the current Python development server, Playwright root server, and manual Netlify workflow remain unchanged until their dedicated migration phases
+
+  - [x] inspect the current HTML assembly, route registry, asset graph, Service Worker generation, Playwright server, and Netlify workflow
+  - [x] define the dedicated publish directory and its required twelve-page output
+  - [x] define which files remain canonical source and which files become generated production output
+  - [x] define how `scripts/build-html.mjs` and `scripts/site-config.mjs` run before Vite bundling
+  - [x] define how static route assets, legal pages, utility pages, Netlify Forms markup, sitemap, robots, and `_redirects` reach the publish directory
+  - [x] define the migration boundary without changing the current production, PWA, Playwright, or Netlify contracts
   - **Completion condition:** the target build sequence, source ownership, publish contents, and migration boundaries are documented and supported by the current project structure
 
 - [ ] **PH3-02 — Implement an isolated Vite multi-page build**
 
-  - [ ] add the reviewed Vite development dependency and required configuration without introducing a frontend framework
-  - [ ] add development and production commands that do not replace the current workflow prematurely
-  - [ ] derive all twelve HTML inputs from the canonical `ALL_PAGES` registry
-  - [ ] run the existing HTML assembly before Vite processes the pages
-  - [ ] emit all pages and required static assets into the dedicated publish directory
-  - [ ] preserve root-relative routes, legal and utility pages, Netlify Forms markup, sitemap, robots, and `_redirects`
-  - [ ] confirm that the isolated build does not modify or replace the current root-publish contract
+  - [x] add the reviewed Vite development dependency and required configuration without introducing a frontend framework
+  - [x] add development and production commands that do not replace the current workflow prematurely
+  - [x] derive all twelve HTML inputs from the canonical `ALL_PAGES` registry
+  - [x] run the existing HTML assembly before Vite processes the pages
+  - [x] emit all pages and required static assets into the dedicated publish directory
+  - [x] preserve root-relative routes, legal and utility pages, Netlify Forms markup, sitemap, robots, and `_redirects`
+  - [x] confirm that the isolated build does not modify or replace the current root-publish contract
   - **Depends on:** `PH3-01`
   - **Completion condition:** one isolated Vite command produces a complete twelve-page publish directory without switching the active production workflow
 

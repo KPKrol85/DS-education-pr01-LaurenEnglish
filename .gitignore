@@ -2,6 +2,9 @@
 # Production bundles under assets/build remain intentionally tracked.
 node_modules/
 
+# Generated build output
+/dist/
+
 # Environment files
 .env
 .env.*
@@ -38,3 +41,6 @@ Desktop.ini
 
 # Local Netlify folder
 .netlify
+
+# Local Vite public folder
+/.vite-public/

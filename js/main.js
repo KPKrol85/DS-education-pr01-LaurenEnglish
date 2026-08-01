@@ -42,8 +42,7 @@ const initThemeToggle = () => {
 
   toggles.forEach((toggle) => {
     toggle.addEventListener("click", () => {
-      const nextTheme =
-        document.documentElement.dataset.theme === "dark" ? "light" : "dark";
+      const nextTheme = document.documentElement.dataset.theme === "dark" ? "light" : "dark";
       applyTheme(nextTheme);
       writeStoredValue("theme", nextTheme);
     });
@@ -51,58 +50,37 @@ const initThemeToggle = () => {
   });
 };
 
-const isLocalDevelopmentOrigin = () =>
-  location.port === "8181" &&
-  ["127.0.0.1", "localhost"].includes(location.hostname);
+const isLocalDevelopmentOrigin = () => ["5173", "8181"].includes(location.port) && ["127.0.0.1", "localhost"].includes(location.hostname);
 
 const isProjectServiceWorker = (registration) =>
-  [registration.active, registration.waiting, registration.installing]
-    .filter(Boolean)
-    .some((worker) => {
-      const scriptUrl = new URL(worker.scriptURL);
-      return (
-        scriptUrl.origin === location.origin &&
-        scriptUrl.pathname === PROJECT_SERVICE_WORKER_PATH
-      );
-    });
+  [registration.active, registration.waiting, registration.installing].filter(Boolean).some((worker) => {
+    const scriptUrl = new URL(worker.scriptURL);
+    return scriptUrl.origin === location.origin && scriptUrl.pathname === PROJECT_SERVICE_WORKER_PATH;
+  });
 
 const clearLocalDevelopmentPwaState = async () => {
   if ("serviceWorker" in navigator) {
     const registrations = await navigator.serviceWorker.getRegistrations();
-    await Promise.all(
-      registrations
-        .filter(isProjectServiceWorker)
-        .map((registration) => registration.unregister()),
-    );
+    await Promise.all(registrations.filter(isProjectServiceWorker).map((registration) => registration.unregister()));
   }
 
   if ("caches" in window) {
     const cacheNames = await caches.keys();
-    await Promise.all(
-      cacheNames
-        .filter((cacheName) => cacheName.startsWith(PROJECT_CACHE_PREFIX))
-        .map((cacheName) => caches.delete(cacheName)),
-    );
+    await Promise.all(cacheNames.filter((cacheName) => cacheName.startsWith(PROJECT_CACHE_PREFIX)).map((cacheName) => caches.delete(cacheName)));
   }
 };
 
 const registerServiceWorker = () => {
   window.addEventListener("load", () => {
     if (isLocalDevelopmentOrigin()) {
-      clearLocalDevelopmentPwaState().catch((error) =>
-        reportInitializationFailure("Local Service Worker cleanup", error),
-      );
+      clearLocalDevelopmentPwaState().catch((error) => reportInitializationFailure("Local Service Worker cleanup", error));
       return;
     }
 
     if (!("serviceWorker" in navigator)) return;
     try {
-      const registration = navigator.serviceWorker.register(
-        PROJECT_SERVICE_WORKER_PATH,
-      );
-      registration.catch((error) =>
-        reportInitializationFailure("Service worker", error),
-      );
+      const registration = navigator.serviceWorker.register(PROJECT_SERVICE_WORKER_PATH);
+      registration.catch((error) => reportInitializationFailure("Service worker", error));
     } catch (error) {
       reportInitializationFailure("Service worker", error);
     }

@@ -25,6 +25,9 @@
     "test:e2e:report": "playwright show-report playwright-report",
     "build:html": "node scripts/build-html.mjs",
     "check:html": "node scripts/build-html.mjs --check",
+    "prepare:vite-public": "node scripts/prepare-vite-public.mjs",
+    "dev:vite": "npm run build:html && npm run prepare:vite-public && vite",
+    "build:vite": "npm run build:html && npm run prepare:vite-public && vite build",
     "build:css": "node -e \"require('fs').mkdirSync('assets/build',{recursive:true})\" && postcss css/style.css -o assets/build/style.min.css",
     "watch:css": "node -e \"require('fs').mkdirSync('assets/build',{recursive:true})\" && postcss css/style.css -o assets/build/style.min.css --watch",
     "build:js": "node -e \"require('fs').mkdirSync('assets/build',{recursive:true})\" && esbuild js/main.js --bundle --minify --outfile=assets/build/main.min.js",
@@ -42,13 +45,14 @@
     "@eslint/js": "^10.0.1",
     "@playwright/test": "^1.61.1",
     "cssnano": "^6.1.2",
-    "esbuild": "^0.25.1",
+    "esbuild": "^0.28.1",
     "eslint": "^10.8.0",
     "globals": "^15.15.0",
     "postcss": "^8.4.38",
     "postcss-cli": "^11.0.0",
     "postcss-import": "^16.1.0",
     "prettier": "^3.2.5",
-    "sharp": "^0.35.3"
+    "sharp": "^0.35.3",
+    "vite": "^8.2.0"
   }
 }
