@@ -1,5 +1,4 @@
 # Dependencies
-# Production bundles under assets/build remain intentionally tracked.
 node_modules/
 
 # Generated build output

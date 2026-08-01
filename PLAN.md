@@ -162,10 +162,10 @@
 
   - [x] update `CONTEXT-PROJECT.md`, both README language sections, `docs/runtime-checklist.md`, and directly affected build documentation
   - [x] remove or revise documentation describing the retired direct-source production contract
-  - [ ] verify a clean lockfile installation and the final production build
-  - [ ] verify generated-output integrity, static validators, image parity, JavaScript linting, and focused PWA behavior
+  - [x] verify a clean lockfile installation and the final production build
+  - [x] verify generated-output integrity, static validators, image parity, JavaScript linting, and focused PWA behavior
   - [ ] run the complete browser suite against the final publish output
-  - [ ] confirm that no unintended direct-source, auxiliary-build, root-publish, or obsolete Service Worker contract remains active
+  - [x] confirm that no unintended direct-source, auxiliary-build, root-publish, or obsolete Service Worker contract remains active
   - [ ] record the completed migration in `CHANGELOG.md`
   - **Depends on:** `PH3-05`
   - **Completion condition:** one documented Vite command produces the deployable twelve-page publish directory; the Service Worker, Playwright, and Netlify contracts consume that output; all required checks pass; and documentation matches the executable project state
