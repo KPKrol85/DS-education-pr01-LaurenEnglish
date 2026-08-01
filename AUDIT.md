@@ -6,13 +6,13 @@
 
 **Audit mode:** Final repository and implementation review
 
-**Current readiness:** Needs Important Fixes
+**Current readiness:** Ready within verified scope
 
 ## 1. Executive assessment
 
-Lauren English is a coherent, source-first static frontend with strong repository-specific validation, progressive enhancement, accessible interaction patterns, deterministic content assembly, and a carefully scoped PWA implementation. The current executable registries, generated HTML regions, route metadata, image outputs, and Service Worker graph are internally aligned. Static checks passed, both development and production dependency audits reported zero vulnerabilities, and 71 of 86 direct Chromium test executions passed.
+Lauren English is a coherent, source-first static frontend with strong repository-specific validation, progressive enhancement, accessible interaction patterns, deterministic content assembly, and a carefully scoped PWA implementation. The current executable registries, generated HTML regions, route metadata, image outputs, and Service Worker graph are internally aligned. Static checks passed, both development and production dependency audits reported zero vulnerabilities, and the complete Chromium suite finished with 77 passed, 9 skipped, and 0 failed.
 
-The project is not fully release-ready because the documented full browser gate is currently red. All six failures are confined to three progress-journal tests repeated in the desktop and mobile projects. Source and failure inspection show that the test setup re-applies seeded storage on every reload and expects focus after a synthetic selection that did not first focus the control. These failures do not currently demonstrate broken journal behavior, but they prevent the suite from reliably proving persistence, reset, and focus contracts. A separate low-impact README issue preserves undated task-specific verification commentary in otherwise evergreen project documentation.
+The previously identified progress-journal fixture defects and transient README verification commentary have been resolved. Reload persistence, reset behavior, focus restoration, mobile keyboard anchor navigation, sticky-header clearance, and focus transfer are now covered by passing focused and complete-suite verification. No unresolved P0, P1, or P2 findings remain within the audited repository and implementation scope, so the project is ready within verified scope. Live deployment behavior, real Netlify Forms submission, the production Service Worker lifecycle, real devices, non-Chromium browsers, assistive technologies, Lighthouse, and hosting-level configuration remain outside the verified scope of this audit.
 
 ## 2. Audit scope and verification
 
@@ -40,9 +40,9 @@ Checks executed:
 - `npm run lint:js` — passed
 - `npm audit --audit-level=high --ignore-scripts` — passed; 0 vulnerabilities
 - `npm audit --omit=dev --audit-level=high --ignore-scripts` — passed; 0 vulnerabilities
-- `npx playwright test --reporter=line` — failed; 71 passed, 9 skipped, and 6 failed across Chromium desktop and mobile
+- `npm run test:e2e` — passed; 77 passed, 9 skipped, and 0 failed across Chromium desktop and mobile
 
-The direct Playwright command intentionally reused the already validated repository output and skipped the writing build step. `npm ci`, production builds, image generation, the mutating development-workflow check, Lighthouse, non-Chromium browsers, real devices, assistive technologies, deployment, and live monitoring were not executed.
+The final `npm run test:e2e` command executed the project build and the complete Chromium desktop and mobile suite. `npm ci`, image generation, the mutating development-workflow check, Lighthouse, non-Chromium browsers, real devices, assistive technologies, deployment, and live monitoring were not executed.
 
 ## 3. Verified strengths
 
@@ -64,28 +64,24 @@ The direct Playwright command intentionally reused the already validated reposit
 
 None detected.
 
-## 5. P1 — Important issues worth fixing next
+## 5. Resolved P1 findings
 
 ### [P1-01] Progress-journal fixtures invalidate reload and focus verification
 
-**Status:** Resolved
-
+- **Status:** Resolved
 - **Resolution evidence:** The focused progress-journal suite passed with 8 tests, and the complete Playwright suite passed with 77 passed, 9 skipped, and 0 failed.
 - **Classification:** Contract mismatch
 - **Affected area:** Playwright test architecture, progress-journal persistence and focus verification
 - **Evidence:** `tests/e2e/progress-journal.spec.mjs:29-31`, `tests/e2e/progress-journal.spec.mjs:44-53`, `tests/e2e/progress-journal.spec.mjs:83-117`, `tests/e2e/progress-journal.spec.mjs:145-173`
-- **Current behavior:** `seedProgress()` registers a persistent `page.addInitScript()` that writes the original fixture state on every navigation. The retention test therefore restores goal `6` after selecting `7`, and the reset test restores seeded goal `7` after clearing storage instead of retaining default goal `3`. The focus test calls `selectOption()` without first focusing the select, while the implementation restores focus only when the changing control is the active element. The direct suite consequently reports the same three failures in both Chromium projects: 6 failed, 71 passed, and 9 skipped.
-- **Impact:** The documented full browser gate cannot complete successfully and currently produces false negatives for the journal's persistence, reset, and focus contracts. This weakens release confidence and can conceal a future real regression behind known test failures.
-- **Recommended direction:** Seed journal storage once without reapplying the fixture after a tested reload, and make the synthetic selection reproduce a genuinely focused user interaction before asserting focus restoration.
-- **Verification criteria:** The journal tests pass in both desktop and mobile projects while proving that a changed goal survives a real reload, reset data stays cleared after reload, and focus is preserved from an explicitly focused control; the complete suite then finishes with no unexpected failures.
+- **Resolved behavior:** Journal storage is seeded once before the initial page load, so tested reloads no longer restore the original fixture. Goal persistence, reset behavior, and focus restoration now reflect genuine browser interactions in both Chromium projects.
+- **Resolved impact:** The journal test contract is now deterministic, the complete browser gate is green, and persistence, reset, and focus regressions can be detected reliably.
+- **Resolution implemented:** Replaced persistent `addInitScript()` reseeding with a one-time storage seed before the initial journal load and explicitly focused the goal control before changing its value.
+- **Verification completed:** The focused progress-journal suite passed with 8 tests, and the complete Chromium suite passed with 77 passed, 9 skipped, and 0 failed.
 
-## 6. P2 — Minor refinements
+## 6. Resolved P2 findings
 
 ### [P2-01] README contains transient task-verification commentary
 
-**Status:** Resolved
-
-- **Resolution evidence:** The Polish and English testing sections retain factual parity and now direct readers to the relevant audit or release record for execution results.
 - **Classification:** Documentation mismatch
 - **Affected area:** Bilingual repository documentation, testing status
 - **Evidence:** `README.md:148`, `README.md:360`
@@ -112,7 +108,7 @@ None detected.
 
 ## 8. Current readiness conclusion
 
-**Status:** Needs Important Fixes
+**Status:** Ready within verified scope
 
 The current product implementation is strong within its documented static-site and PWA scope, and no critical runtime, security, accessibility, content, routing, dependency, or offline defect was confirmed. Release readiness remains below the final threshold because the complete documented browser gate is not trustworthy while six known progress-journal test failures remain. Correcting the test contract and rerunning the complete suite are the necessary next steps; the README cleanup is minor.
 
