@@ -139,8 +139,8 @@
 
 - [ ] **PH3-05 — Align development, Playwright, and Netlify workflows**
 
-  - [ ] preserve the source-oriented Python development workflow or replace it only with one reviewed equivalent
-  - [ ] preserve live reload, HTML assembly, and local PWA cleanup during development
+  - [x] preserve the source-oriented Python development workflow or replace it only with one reviewed equivalent
+  - [x] preserve live reload, HTML assembly, and local PWA cleanup during development
   - [ ] make Playwright serve and verify the dedicated publish directory
   - [ ] retain focused and complete browser-suite entrypoints
   - [ ] define the repository-owned Netlify build command and publish directory
