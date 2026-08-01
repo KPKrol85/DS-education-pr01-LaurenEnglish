@@ -158,15 +158,22 @@
   - **Depends on:** `PH3-04`
   - **Completion condition:** development remains reliable, Playwright verifies the final publish output, and Netlify has one explicit Vite build-and-publish contract
 
-- [ ] **PH3-06 — Finalize documentation and migration verification**
+- [x] **PH3-06 — Finalize documentation and migration verification**
+
+  - **Verified implementation:**
+    - `npm run build:vite` creates the complete twelve-page `dist/` publish directory, with production HTML consuming hashed CSS and JavaScript from `dist/build/`
+    - `dist/service-worker.js` is generated from and validated against the final Vite asset graph
+    - Playwright builds and serves only `dist/`; the focused PWA suite passes with 10 tests, and the complete browser suite passes with 79 passed, 9 skipped, 0 failed, 0 flaky, and 0 interrupted
+    - `netlify.toml` defines `npm run build:vite` and `dist` as the explicit manual-terminal deployment contract; GitHub-connected automatic deployment remains inactive
+    - active documentation matches the executable project state, and retired direct-source and root-publish production contracts are no longer active
 
   - [x] update `CONTEXT-PROJECT.md`, both README language sections, `docs/runtime-checklist.md`, and directly affected build documentation
   - [x] remove or revise documentation describing the retired direct-source production contract
   - [x] verify a clean lockfile installation and the final production build
   - [x] verify generated-output integrity, static validators, image parity, JavaScript linting, and focused PWA behavior
-  - [ ] run the complete browser suite against the final publish output
+  - [x] run the complete browser suite against the final publish output
   - [x] confirm that no unintended direct-source, auxiliary-build, root-publish, or obsolete Service Worker contract remains active
-  - [ ] record the completed migration in `CHANGELOG.md`
+  - [x] record the completed migration in `CHANGELOG.md`
   - **Depends on:** `PH3-05`
   - **Completion condition:** one documented Vite command produces the deployable twelve-page publish directory; the Service Worker, Playwright, and Netlify contracts consume that output; all required checks pass; and documentation matches the executable project state
 

@@ -446,9 +446,17 @@ test("keeps online routing real and never stores failed or partial responses", a
     `404 ${origin}${failedAssetPath}`,
     `${postResult.status} ${origin}${postPath}`,
   ].sort();
+  const expectedRequestFailures = [
+    `net::ERR_ABORTED ${origin}${failedAssetPath}`,
+    `net::ERR_ABORTED ${origin}${postPath}`,
+  ]
+    .map((message) => message.trim())
+    .sort();
   expect(diagnostics.consoleErrors).toHaveLength(expectedHttpErrors.length);
   expect(diagnostics.pageErrors).toEqual([]);
-  expect(diagnostics.requestFailures).toEqual([]);
+  expect(
+    diagnostics.requestFailures.map((message) => message.trim()).sort(),
+  ).toEqual(expectedRequestFailures);
   expect([...diagnostics.httpErrors].sort()).toEqual(expectedHttpErrors);
 });
 

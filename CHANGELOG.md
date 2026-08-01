@@ -26,6 +26,10 @@ All significant changes to this project are documented in this file.
 - Aligned the runtime checklist with canonical asset, route, indexing, published-page, and precache registries.
 - Corrected the bilingual image-maintenance contract for canonical originals and generated JPEG, AVIF, and WebP outputs.
 
+### Build and Tooling
+
+- Migrated the twelve-page production workflow to Vite-generated `dist/` output with hashed CSS and JavaScript, a Service Worker generated and validated from the final asset graph, Playwright verification against `dist/`, and the explicit `npm run build:vite`/`dist` contract for manual terminal deployment to Netlify.
+
 ## [1.0.0] - 2026-07-26
 
 ### Added
