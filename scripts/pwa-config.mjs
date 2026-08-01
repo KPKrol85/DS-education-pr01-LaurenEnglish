@@ -1,4 +1,4 @@
-import { INDEXABLE_PAGES, SITE } from "./site-config.mjs";
+import { ALL_PAGES, INDEXABLE_PAGES, SITE } from "./site-config.mjs";
 import {
   CONTENT_IMAGE_ASSETS,
   CONTENT_IMAGE_PATHS,
@@ -11,6 +11,10 @@ export const MANIFEST_PATH = SITE.manifest.path;
 
 export const PRIMARY_DOCUMENT_PATHS = Object.freeze(
   INDEXABLE_PAGES.map(({ file }) => `/${file}`),
+);
+
+export const PUBLISHED_DOCUMENT_PATHS = Object.freeze(
+  ALL_PAGES.map(({ file }) => `/${file}`),
 );
 
 export const CSS_ENTRY_PATH = SITE.runtime.stylesheet;
@@ -157,11 +161,7 @@ export const THEME_ICON_PATHS = Object.freeze([
 ]);
 export const OFFLINE_PAGE_IMAGE_PATHS = Object.freeze([...CONTENT_IMAGE_PATHS]);
 
-export const PRECACHE_PATHS = Object.freeze([
-  ...PRIMARY_DOCUMENT_PATHS,
-  OFFLINE_PATH,
-  ...RUNTIME_CSS_PATHS,
-  ...RUNTIME_JAVASCRIPT_PATHS,
+export const STATIC_PRECACHE_PATHS = Object.freeze([
   ...FONT_PATHS,
   ...MANIFEST_ICON_PATHS,
   ...SHORTCUT_ICON_PATHS,
@@ -169,6 +169,14 @@ export const PRECACHE_PATHS = Object.freeze([
   ...THEME_ICON_PATHS,
   ...OFFLINE_PAGE_IMAGE_PATHS,
   MANIFEST_PATH,
+]);
+
+export const PRECACHE_PATHS = Object.freeze([
+  ...PRIMARY_DOCUMENT_PATHS,
+  OFFLINE_PATH,
+  ...RUNTIME_CSS_PATHS,
+  ...RUNTIME_JAVASCRIPT_PATHS,
+  ...STATIC_PRECACHE_PATHS,
 ]);
 
 export const CRITICAL_ASSET_BUDGET = Object.freeze({
