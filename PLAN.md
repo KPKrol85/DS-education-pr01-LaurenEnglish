@@ -96,20 +96,16 @@
   - **Depends on:** `PH3-01`
   - **Completion condition:** one isolated Vite command produces a complete twelve-page publish directory without switching the active production workflow
 
-<!-- in progress -->
-
-- [ ] **PH3-03 — Integrate the Vite production asset graph**
+- [x] **PH3-03 — Integrate the Vite production asset graph**
 
   - [x] make the built HTML consume Vite-generated CSS and JavaScript assets
   - [x] keep canonical CSS and ES module sources under their current source ownership
   - [x] preserve root-relative navigation, images, fonts, icons, manifest references, and page-specific behavior
-  - [ ] define the final role or removal path for auxiliary output under `assets/build/`
-  - [ ] ensure no direct-source and auxiliary production asset contracts remain active accidentally
-  - [ ] adapt relevant read-only validators to the built asset graph where required
+  - [x] define the final role or removal path for auxiliary output under `assets/build/`
+  - [x] ensure no direct-source and auxiliary production asset contracts remain active accidentally
+  - [x] adapt relevant read-only validators to the built asset graph where required
   - **Depends on:** `PH3-02`
   - **Completion condition:** the isolated publish output uses one consistent Vite-generated production asset graph while canonical source ownership remains clear
-
-<!-- @@@@@@@@@@@@@@@@@@@@ -->
 
 - [ ] **PH3-04 — Integrate the PWA and Service Worker with the publish output**
 
