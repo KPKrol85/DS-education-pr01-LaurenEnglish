@@ -32,6 +32,7 @@ All significant changes to this project are documented in this file.
 ### Build and Tooling
 
 - Migrated the twelve-page production workflow to Vite-generated `dist/` output with hashed CSS and JavaScript, a Service Worker generated and validated from the final asset graph, Playwright verification against `dist/`, and the explicit `npm run build:vite`/`dist` contract for manual terminal deployment to Netlify.
+- Defined the Node.js 22 and npm 10.9.2 toolchain contract with a non-writing static release gate.
 
 ## [1.0.0] - 2026-07-26
 

@@ -84,7 +84,7 @@ Pliki HTML w katalogu głównym zawierają kanoniczną treść właściwą danej
 
 ### Instalacja
 
-Repozytorium używa npm i zawiera zatwierdzony `package-lock.json`. Czysta instalacja do lokalnego developmentu, weryfikacji, testów przeglądarkowych i przygotowania wdrożenia zawsze odtwarza ten przeglądnięty graf zależności:
+Repozytorium używa npm i zawiera zatwierdzony `package-lock.json` w formacie lockfile v3. Czysta instalacja do lokalnego developmentu, weryfikacji, testów przeglądarkowych i przygotowania wdrożenia zawsze odtwarza ten przeglądnięty graf zależności:
 
 ```powershell
 npm ci
@@ -93,7 +93,8 @@ npx playwright install chromium
 
 Polecenie `npm install` jest zarezerwowane wyłącznie dla celowego dodawania, usuwania lub aktualizowania zależności wraz z odpowiednią zmianą `package.json` i `package-lock.json`; nie służy do rutynowej konfiguracji projektu.
 
-Projekt nie deklaruje konkretnej wersji Node.js. Python 3 jest wymagany wyłącznie przez projektowy serwer uruchamiany poleceniem `npm run dev` lub plikiem `start-dev.bat`.
+Obsługiwany kontrakt obejmuje Node.js `>=22.14.0 <23` (linię Node 22) oraz npm `10.9.2`. Plik `.nvmrc` wskazuje zweryfikowane lokalnie Node.js `22.14.0`, a `packageManager` przypina npm `10.9.2`; pole `engines` definiuje zgodność, ale nie instaluje runtime.
+Python 3 jest wymagany wyłącznie przez projektowy serwer uruchamiany poleceniem `npm run dev` lub plikiem `start-dev.bat`.
 
 ### Development lokalny
 
@@ -123,6 +124,7 @@ npm run serve
 - `npm run check:data` / `npm run check:content` — sprawdza dane pakietów i materiałów oraz integralność treści publicznych;
 - `npm run check:css` — sprawdza architekturę CSS, tokeny motywów i zdefiniowane pary kontrastu;
 - `npm run check:seo` / `npm run check:pwa` — sprawdza kontrakty źródłowych metadanych, routingu i PWA;
+- `npm run check:release` — uruchamia zbiorczą, niezapisującą kontrolę statyczną przed wydaniem;
 - `npm run check:dev` — weryfikuje serwer lokalny, MIME, 404, live reload, rebuild HTML i lokalne czyszczenie PWA;
 - `npm run lint:js` — uruchamia ESLint dla kanonicznych źródeł JavaScript i modułów projektu;
 - `npm run test:e2e` — buduje przez Vite, serwuje wyłącznie `dist/` i uruchamia pełny zestaw Playwright;
@@ -153,6 +155,17 @@ Uruchom `npm run images`, aby z kanonicznych oryginałów ponownie wygenerować 
 ### Testy i walidacja
 
 Projekt udostępnia walidatory statyczne dla danych, publicznych treści, HTML, CSS, SEO, źródłowego PWA i lokalnego workflow oraz osobne `check:vite` i `check:pwa:vite` dla wygenerowanego `dist/`. Nie zastępują one testów przeglądarkowych.
+
+#### Niezapisująca kontrola release
+
+```powershell
+npm run check:release
+```
+
+Polecenie uruchamia kolejno `check:data`, `check:content`, `check:html`, `check:css`, `check:seo`, `check:images`, `check:pwa` i `lint:js`. Każdy krok tylko odczytuje źródła, konfigurację lub śledzone outputy albo wykonuje lint; polecenie nie generuje, nie formatuje, nie uruchamia serwera i nie zmienia plików.
+
+`npm run images`, `npm run build:vite`, walidacja wygenerowanego `dist/` przez `check:vite` i `check:pwa:vite`, Playwright, kontrole wizualne oraz deployment pozostają osobnymi workflow.
+
 
 Główna konfiguracja Playwrighta automatycznie uruchamia `npm run build:vite`, a następnie serwuje wyłącznie `dist/` przez Vite preview na porcie `4173`. Chromium działa w projektach `1440 × 900` oraz `390 × 844`, z jednym workerem i Service Workerami domyślnie zablokowanymi. Zestawy PWA włączają je jawnie; izolowany kontrakt Vite PWA używa osobnej konfiguracji na porcie `4274`.
 
@@ -311,7 +324,7 @@ Root HTML files contain canonical page-specific content, but regions marked with
 
 ### Installation
 
-The repository uses npm and includes a committed `package-lock.json`. Clean installation for local development, verification, browser tests, and deployment preparation always reproduces this reviewed dependency graph:
+The repository uses npm and includes a committed `package-lock.json` using lockfile format v3. Clean installation for local development, verification, browser tests, and deployment preparation always reproduces this reviewed dependency graph:
 
 ```powershell
 npm ci
@@ -320,7 +333,8 @@ npx playwright install chromium
 
 `npm install` is reserved exclusively for intentionally adding, removing, or updating dependencies together with the corresponding `package.json` and `package-lock.json` changes; it is not a routine project setup command.
 
-The project does not declare a specific Node.js version. Python 3 is required only by the project server started with `npm run dev` or `start-dev.bat`.
+The supported contract is Node.js `>=22.14.0 <23` (the Node 22 line) and npm `10.9.2`. `.nvmrc` selects the locally verified Node.js `22.14.0`, while `packageManager` pins npm `10.9.2`; `engines` expresses compatibility but does not install a runtime.
+Python 3 is required only by the project server started with `npm run dev` or `start-dev.bat`.
 
 ### Local Development
 
@@ -350,6 +364,7 @@ npm run serve
 - `npm run check:data` / `npm run check:content` — validates package and material data plus public-content integrity;
 - `npm run check:css` — checks CSS architecture, theme tokens, and defined contrast pairs;
 - `npm run check:seo` / `npm run check:pwa` — checks source metadata, routing, and PWA contracts;
+- `npm run check:release` — runs the aggregate non-writing static release gate;
 - `npm run check:dev` — verifies the local server, MIME types, 404 handling, live reload, HTML rebuilds, and local PWA cleanup;
 - `npm run lint:js` — runs ESLint for the project’s canonical JavaScript and module sources;
 - `npm run test:e2e` — builds through Vite, serves only `dist/`, and runs the complete Playwright suite;
@@ -380,6 +395,17 @@ Run `npm run images` to regenerate the configured JPEG fallbacks and AVIF and We
 ### Testing and Validation
 
 The project provides static validators for data, public content, HTML, CSS, SEO, the source PWA contract, and the local workflow, plus separate `check:vite` and `check:pwa:vite` commands for generated `dist/`. They complement rather than replace browser tests.
+
+#### Non-writing release gate
+
+```powershell
+npm run check:release
+```
+
+The command runs `check:data`, `check:content`, `check:html`, `check:css`, `check:seo`, `check:images`, `check:pwa`, and `lint:js` in order. Every step only reads source, configuration, or tracked output, or lints it; the command does not generate, format, start a server, or change files.
+
+`npm run images`, `npm run build:vite`, generated `dist/` validation through `check:vite` and `check:pwa:vite`, Playwright, visual checks, and deployment remain separate workflows.
+
 
 The main Playwright configuration automatically runs `npm run build:vite` and then serves only `dist/` through Vite preview on port `4173`. Chromium runs projects at `1440 × 900` and `390 × 844`, with one worker and Service Workers blocked by default. PWA suites enable them explicitly; the isolated Vite PWA contract uses a separate configuration on port `4274`.
 

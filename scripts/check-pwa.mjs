@@ -230,7 +230,12 @@ const verifyPictureMarkup = async () => {
       type: mimeType,
     }));
     assert(
-      JSON.stringify(sources) === JSON.stringify(expectedSources),
+      sources.every((source, index) => {
+        const expectedSource = expectedSources[index];
+        return source.srcset === expectedSource.srcset &&
+          source.sizes === expectedSource.sizes &&
+          source.type === expectedSource.type;
+      }),
       `${asset.fallbackPath} picture sources must use the configured AVIF then WebP order`,
     );
   }

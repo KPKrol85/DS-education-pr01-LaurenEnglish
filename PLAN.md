@@ -198,12 +198,17 @@ These items are evidence-supported opportunities. They are not release blockers 
   - **Scope boundary:** non-blocking performance refinement; do not select widths or budgets without measurements
   - **Completion condition:** supported viewports select an appropriate generated candidate, intrinsic dimensions and visual quality remain correct, and the measured transfer result satisfies the approved budget
 
-- [ ] **O-02 — Pin the Node toolchain and add a non-writing release check**
-  - [ ] define the supported Node.js and npm contract after the Vite toolchain requirements are final
-  - [ ] record the versions in machine-readable repository configuration and equivalent README documentation
-  - [ ] add one aggregate release-check command composed only of read-only validators and lint checks
-  - [ ] document which generated-output, browser, and deployment checks remain separate from the non-writing aggregate command
-  - [ ] verify the aggregate command from a clean lockfile installation and confirm that it leaves tracked files unchanged
+- [x] **O-02 — Pin the Node toolchain and add a non-writing release check**
+  - [x] define the supported Node.js and npm contract after the Vite toolchain requirements are final
+  - [x] record the versions in machine-readable repository configuration and equivalent README documentation
+  - [x] add one aggregate release-check command composed only of read-only validators and lint checks
+  - [x] document which generated-output, browser, and deployment checks remain separate from the non-writing aggregate command
+  - [x] verify the aggregate command from a clean lockfile installation and confirm that it leaves tracked files unchanged
+  - **Verified implementation:**
+    - `package.json` declares Node.js `>=22.14.0 <23`, npm `10.9.x`, and `packageManager` `npm@10.9.2`; `.nvmrc` records Node.js `22.14.0`
+    - `check:release` runs `check:data`, `check:content`, `check:html`, `check:css`, `check:seo`, `check:images`, `check:pwa`, and `lint:js` in that order
+    - clean `npm ci` completed with 0 vulnerabilities and left `package-lock.json` unchanged
+    - `npm run check:release` passed and created no tracked-file diff
   - **Depends on:** `PH3-06`
   - **Value:** make local and CI verification use one explicit runtime and one reproducible static gate
   - **Scope boundary:** non-blocking workflow hardening; CI provider configuration is not required unless separately approved

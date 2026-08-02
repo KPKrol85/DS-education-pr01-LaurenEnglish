@@ -248,6 +248,13 @@ Do not claim verification that was not performed.
 
 ## 13. Development workflow
 
+The supported toolchain is Node.js `>=22.14.0 <23` (the Node 22 line) with npm `10.9.2`. `.nvmrc` records the locally verified Node.js `22.14.0`, while `packageManager` pins npm `10.9.2`; `engines` expresses compatibility and does not install a runtime. The committed `package-lock.json` uses lockfile format v3.
+
+Use `npm ci` for a clean installation. `npm run check:release` runs `check:data`, `check:content`, `check:html`, `check:css`, `check:seo`, `check:images`, `check:pwa`, and `lint:js` without generating output or changing tracked files.
+
+Generated-output validation (`check:vite` and `check:pwa:vite`), builds, image generation, browser and visual checks, local servers, and deployment remain separate workflows.
+
+
 For each task:
 
 1. inspect the relevant files and existing patterns
