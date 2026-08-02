@@ -6,6 +6,7 @@ All significant changes to this project are documented in this file.
 
 ### Fixed
 
+- Prevented oversized reveal targets from leaving the materials catalogue hidden on narrow viewports.
 - Enforced canonical image-source preflight and added read-only generated-output parity checking without public-fallback promotion or codec-driven binary churn.
 - Regenerated the tracked auxiliary JavaScript bundle from the current canonical source graph.
 - Defined the canonical relaxed line-height contract and added unresolved custom-property validation with focused light and dark theme coverage.
