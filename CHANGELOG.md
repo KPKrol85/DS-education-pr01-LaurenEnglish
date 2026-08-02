@@ -25,6 +25,7 @@ All significant changes to this project are documented in this file.
 - Added pinned Inter OFL evidence, bilingual attribution, and complete font-license validation coverage.
 - Aligned the runtime checklist with canonical asset, route, indexing, published-page, and precache registries.
 - Corrected the bilingual image-maintenance contract for canonical originals and generated JPEG, AVIF, and WebP outputs.
+- Replaced transient task-specific README verification notes with evergreen bilingual validation guidance.
 
 ### Build and Tooling
 
