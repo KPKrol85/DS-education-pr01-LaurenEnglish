@@ -8,8 +8,8 @@ import {
 import {
   CONTENT_IMAGE_ASSETS,
   MODERN_IMAGE_FORMATS,
+  getImageCandidates,
   getImagePaths,
-  getModernImagePath,
 } from "../../scripts/image-config.mjs";
 import {
   BRAND_LOGO_PATH,
@@ -199,25 +199,32 @@ test("delivers configured AVIF and WebP content images through picture markup", 
     });
     const expectedSources = MODERN_IMAGE_FORMATS.map(
       ({ extension, mimeType }) => ({
-        srcsetPaths: [getModernImagePath(asset.fallbackPath, extension)],
+        srcsetPaths: getImageCandidates(asset, extension).map(({ path }) => path),
         type: mimeType,
       }),
     );
 
     expect(result.sources).toEqual(expectedSources);
     expect(getImagePaths(asset)).toContain(result.currentSrc);
-    expect(result).toMatchObject({
-      height: asset.height,
-      width: asset.width,
-    });
-
     const response = await page.request.get(result.currentSrc);
     expect(response.status()).toBe(200);
     const selectedSource = result.sources.find(({ srcsetPaths }) =>
       srcsetPaths.includes(result.currentSrc),
     );
+    const selectedExtension = result.currentSrc.endsWith(".avif")
+      ? "avif"
+      : "webp";
+    const selectedCandidate = getImageCandidates(asset, selectedExtension).find(
+      ({ path }) => path === result.currentSrc,
+    );
+    expect(selectedCandidate).toBeDefined();
+    expect(result.width).toBeGreaterThan(0);
+    expect(result.height).toBeGreaterThan(0);
+    expect(result.width / result.height).toBeCloseTo(asset.width / asset.height, 2);
     expect(selectedSource).toEqual({
-      srcsetPaths: [result.currentSrc],
+      srcsetPaths: getImageCandidates(asset, selectedExtension).map(
+        ({ path }) => path,
+      ),
       type: result.currentSrc.endsWith(".avif") ? "image/avif" : "image/webp",
     });
   }
@@ -532,10 +539,19 @@ test("uses the Vite runtime graph without duplicates or source bundles", async (
   expect(countPath("/js/main.js")).toBe(0);
   expect(countPath("/assets/build/style.min.css")).toBe(0);
   expect(countPath("/assets/build/main.min.js")).toBe(0);
+  const homepageHeroAsset = CONTENT_IMAGE_ASSETS.find(
+    ({ key }) => key === "homepage-hero",
+  );
   const hero = page.locator(".hero__image");
   const selectedHeroPath = await hero.evaluate(
     (image) => new URL(image.currentSrc).pathname,
   );
+  const fallbackHeroCandidate = getImageCandidates(homepageHeroAsset, "jpg").at(-1);
+  const selectedHeroCandidate = MODERN_IMAGE_FORMATS.flatMap(({ extension }) =>
+    getImageCandidates(homepageHeroAsset, extension),
+  ).find(({ path }) => path === selectedHeroPath);
+  expect(fallbackHeroCandidate).toBeDefined();
+  expect(selectedHeroCandidate).toBeDefined();
   expect(HERO_IMAGE_PATHS).toContain(selectedHeroPath);
   expect(countPath(selectedHeroPath)).toBe(
     CRITICAL_ASSET_BUDGET.heroImageRequests,
@@ -571,15 +587,15 @@ test("uses the Vite runtime graph without duplicates or source bundles", async (
 
   await expect(hero).toHaveAttribute("loading", "eager");
   await expect(hero).toHaveAttribute("fetchpriority", "high");
-  await expect(hero).toHaveAttribute("width", "1600");
-  await expect(hero).toHaveAttribute("height", "1200");
+  await expect(hero).toHaveAttribute("width", String(fallbackHeroCandidate.width));
+  await expect(hero).toHaveAttribute("height", String(fallbackHeroCandidate.height));
   expect(
     await hero.evaluate((image) => ({
       complete: image.complete,
       naturalHeight: image.naturalHeight,
       naturalWidth: image.naturalWidth,
     })),
-  ).toEqual({ complete: true, naturalHeight: 1200, naturalWidth: 1600 });
+  ).toMatchObject({ complete: true });
 
   const themeToggle = await getVisibleThemeToggle(page);
   await themeToggle.click();

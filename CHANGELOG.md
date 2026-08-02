@@ -6,6 +6,7 @@ All significant changes to this project are documented in this file.
 
 ### Fixed
 
+- Reduced homepage and contact hero-image transfers with measured 540w, 720w, and 1080w AVIF, WebP, and JPEG candidates selected by viewport density.
 - Prevented oversized reveal targets from leaving the materials catalogue hidden on narrow viewports.
 - Enforced canonical image-source preflight and added read-only generated-output parity checking without public-fallback promotion or codec-driven binary churn.
 - Regenerated the tracked auxiliary JavaScript bundle from the current canonical source graph.

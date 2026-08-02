@@ -39,7 +39,8 @@ import {
 import {
   CONTENT_IMAGE_ASSETS,
   MODERN_IMAGE_FORMATS,
-  getModernImagePath,
+  getImageCandidates,
+  getImageSrcset,
 } from "./image-config.mjs";
 import { ALL_PAGES, INDEXABLE_PAGES, SITE } from "./site-config.mjs";
 
@@ -171,6 +172,7 @@ const getPictureSources = (html, fallbackPath) => {
   const sourceTags = picture.match(/<source\b[^>]*>/gi) ?? [];
   return sourceTags.map((source) => ({
     srcset: getAttribute(source, "srcset"),
+    sizes: getAttribute(source, "sizes"),
     type: getAttribute(source, "type"),
   }));
 };
@@ -178,25 +180,32 @@ const getPictureSources = (html, fallbackPath) => {
 const verifyModernImageAssets = async () => {
   for (const asset of CONTENT_IMAGE_ASSETS) {
     for (const { extension, mimeType } of MODERN_IMAGE_FORMATS) {
-      const path = getModernImagePath(asset.fallbackPath, extension);
-      const buffer = await readFile(publicFile(path));
-      const isWebp =
-        extension === "webp" &&
-        buffer.subarray(0, 4).toString("ascii") === "RIFF" &&
-        buffer.subarray(8, 12).toString("ascii") === "WEBP";
-      const isAvif =
-        extension === "avif" &&
-        buffer.subarray(4, 8).toString("ascii") === "ftyp" &&
-        buffer.subarray(8, 32).includes(Buffer.from("avif"));
-      assert(
-        isWebp || isAvif,
-        `${path} must be a valid ${mimeType} image file`,
-      );
-      if (asset.key === "homepage-hero") {
+      for (const { path } of getImageCandidates(asset, extension)) {
+        const buffer = await readFile(publicFile(path));
+        const isWebp =
+          extension === "webp" &&
+          buffer.subarray(0, 4).toString("ascii") === "RIFF" &&
+          buffer.subarray(8, 12).toString("ascii") === "WEBP";
+        const isAvif =
+          extension === "avif" &&
+          buffer.subarray(4, 8).toString("ascii") === "ftyp" &&
+          buffer.subarray(8, 32).includes(Buffer.from("avif"));
         assert(
-          buffer.length <= CRITICAL_ASSET_BUDGET.maximumHeroImageBytes,
-          `${path} is ${buffer.length} bytes; maximum is ${CRITICAL_ASSET_BUDGET.maximumHeroImageBytes} bytes`,
+          isWebp || isAvif,
+          `${path} must be a valid ${mimeType} image file`,
         );
+        if (asset.key === "homepage-hero") {
+          assert(
+            buffer.length <= CRITICAL_ASSET_BUDGET.maximumHeroImageBytes,
+            `${path} is ${buffer.length} bytes; maximum is ${CRITICAL_ASSET_BUDGET.maximumHeroImageBytes} bytes`,
+          );
+          if (extension === "avif") {
+            assert(
+              buffer.length <= CRITICAL_ASSET_BUDGET.maximumHeroAvifTransferBytes,
+              `${path} is ${buffer.length} bytes; maximum is ${CRITICAL_ASSET_BUDGET.maximumHeroAvifTransferBytes} bytes`,
+            );
+          }
+        }
       }
     }
   }
@@ -215,16 +224,13 @@ const verifyPictureMarkup = async () => {
       sources.length === MODERN_IMAGE_FORMATS.length,
       `${asset.fallbackPath} must provide AVIF and WebP picture sources`,
     );
+    const expectedSources = MODERN_IMAGE_FORMATS.map(({ extension, mimeType }) => ({
+      sizes: asset.sizes ?? null,
+      srcset: getImageSrcset(asset, extension),
+      type: mimeType,
+    }));
     assert(
-      sources.every(
-        ({ srcset, type }, index) =>
-          type === MODERN_IMAGE_FORMATS[index].mimeType &&
-          srcset ===
-            getModernImagePath(
-              asset.fallbackPath,
-              MODERN_IMAGE_FORMATS[index].extension,
-            ),
-      ),
+      JSON.stringify(sources) === JSON.stringify(expectedSources),
       `${asset.fallbackPath} picture sources must use the configured AVIF then WebP order`,
     );
   }
@@ -669,9 +675,18 @@ const verifyHeroAndFonts = async () => {
     "Homepage must contain one hero image element",
   );
   const heroTag = heroTags[0];
+  const homepageHero = CONTENT_IMAGE_ASSETS.find(
+    ({ key }) => key === "homepage-hero",
+  );
+  assert(homepageHero, "Homepage hero image configuration is missing");
   assert(
     getAttribute(heroTag, "src") === HERO_IMAGE_PATH,
     "Homepage hero must use the configured critical image",
+  );
+  assert(
+    getAttribute(heroTag, "srcset") === getImageSrcset(homepageHero, "jpg") &&
+      getAttribute(heroTag, "sizes") === homepageHero.sizes,
+    "Homepage hero fallback candidates must match the configured responsive contract",
   );
   assert(
     getAttribute(heroTag, "loading") === "eager" &&

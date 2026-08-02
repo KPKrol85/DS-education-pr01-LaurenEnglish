@@ -71,7 +71,7 @@ test("canonical preflight, generation, and read-only parity contract", async (t)
   const staleBefore = await stat(diskPath(root, valid.fallbackPath));
   await assert.rejects(
     runImagePipeline({ assets: [valid], check: true, root }),
-    /Image output parity check failed:[\s\S]*valid\.jpg: content mismatch[\s\S]*valid\.avif: missing or unreadable/u,
+    /Image output parity check failed:[\s\S]*valid\.jpg: invalid image[\s\S]*valid\.avif: missing or unreadable/u,
   );
   assert.equal(
     (await stat(diskPath(root, valid.fallbackPath))).mtimeMs,

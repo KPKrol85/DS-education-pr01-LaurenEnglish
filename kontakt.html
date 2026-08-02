@@ -146,14 +146,24 @@
           <div class="hero__visual hero__visual--contact" data-reveal>
             <div class="hero__media hero__media--contact">
               <picture>
-                <source srcset="/assets/img/hero/hero-08.avif" type="image/avif" />
-                <source srcset="/assets/img/hero/hero-08.webp" type="image/webp" />
+                <source
+                  srcset="/assets/img/hero/hero-08-540.avif 540w, /assets/img/hero/hero-08-720.avif 720w, /assets/img/hero/hero-08-1080.avif 1080w"
+                  sizes="(min-width: 1120px) 520px, (min-width: 780px) calc((100vw - 80px) / 2), (min-width: 552px) 520px, calc(100vw - 32px)"
+                  type="image/avif"
+                />
+                <source
+                  srcset="/assets/img/hero/hero-08-540.webp 540w, /assets/img/hero/hero-08-720.webp 720w, /assets/img/hero/hero-08-1080.webp 1080w"
+                  sizes="(min-width: 1120px) 520px, (min-width: 780px) calc((100vw - 80px) / 2), (min-width: 552px) 520px, calc(100vw - 32px)"
+                  type="image/webp"
+                />
                 <img
                   class="hero__image hero__image--contact"
-                  src="/assets/img/hero/hero-08.jpg"
+                  src="/assets/img/hero/hero-08-1080.jpg"
+                  srcset="/assets/img/hero/hero-08-540.jpg 540w, /assets/img/hero/hero-08-720.jpg 720w, /assets/img/hero/hero-08-1080.jpg 1080w"
+                  sizes="(min-width: 1120px) 520px, (min-width: 780px) calc((100vw - 80px) / 2), (min-width: 552px) 520px, calc(100vw - 32px)"
                   alt=""
-                  width="1600"
-                  height="1200"
+                  width="1080"
+                  height="810"
                   decoding="async"
                   loading="eager"
                   fetchpriority="high"

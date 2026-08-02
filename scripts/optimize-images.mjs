@@ -1,5 +1,5 @@
-import { mkdir, readFile, writeFile } from "node:fs/promises";
-import { dirname, resolve } from "node:path";
+import { mkdir, readdir, readFile, rm, writeFile } from "node:fs/promises";
+import { basename, dirname, extname, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
 import sharp from "sharp";
@@ -7,7 +7,7 @@ import sharp from "sharp";
 import {
   CONTENT_IMAGE_ASSETS,
   MODERN_IMAGE_FORMATS,
-  getModernImagePath,
+  getImageCandidates,
 } from "./image-config.mjs";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
@@ -22,13 +22,13 @@ const assert = (condition, message) => {
 
 const toFilePath = (root, publicPath) => resolve(root, `.${publicPath}`);
 
-const optimizeModernImage = (source, extension) => {
+const optimizeModernImage = (image, extension) => {
   if (extension === "avif") {
-    return sharp(source).avif({ quality: 60, effort: 4 }).toBuffer();
+    return image.avif({ quality: 60, effort: 4 }).toBuffer();
   }
 
   if (extension === "webp") {
-    return sharp(source)
+    return image
       .withMetadata()
       .webp({ quality: 82, effort: 6 })
       .toBuffer();
@@ -37,14 +37,14 @@ const optimizeModernImage = (source, extension) => {
   throw new Error(`Unsupported image format: ${extension}`);
 };
 
-const optimizeFallback = (source, fallbackPath) => {
+const optimizeFallback = (image, fallbackPath) => {
   if (JPEG_EXTENSION.test(fallbackPath)) {
-    return sharp(source)
+    return image
       .jpeg({ quality: 82, progressive: true, mozjpeg: true })
       .toBuffer();
   }
 
-  if (PNG_EXTENSION.test(fallbackPath)) return sharp(source).png().toBuffer();
+  if (PNG_EXTENSION.test(fallbackPath)) return image.png().toBuffer();
   throw new Error(`Image fallback must be JPEG or PNG: ${fallbackPath}`);
 };
 
@@ -90,23 +90,36 @@ const preflightSources = async (root, assets) => {
   return results.map(({ value }) => value);
 };
 
+const createImageEncoder = (source, asset, width) =>
+  width === asset.width
+    ? sharp(source)
+    : sharp(source).resize({ width, withoutEnlargement: true });
+
 const createExpectedOutputs = async (sources) =>
   Promise.all(
     sources.map(async ({ asset, source }) => {
-      const fallback = await optimizeFallback(source, asset.fallbackPath);
-      const modern = await Promise.all(
-        MODERN_IMAGE_FORMATS.map(async ({ extension }) => ({
-          data: await optimizeModernImage(source, extension),
-          extension,
-          publicPath: getModernImagePath(asset.fallbackPath, extension),
-        })),
+      const formats = [{ extension: "jpg" }, ...MODERN_IMAGE_FORMATS];
+      const outputs = await Promise.all(
+        formats.flatMap(({ extension }) =>
+          getImageCandidates(asset, extension).map(async (candidate) => {
+            const image = createImageEncoder(source, asset, candidate.width);
+            const data =
+              extension === "jpg"
+                ? await optimizeFallback(image, asset.fallbackPath)
+                : await optimizeModernImage(image, extension);
+            return {
+              data,
+              extension,
+              height: candidate.height,
+              publicPath: candidate.path,
+              width: candidate.width,
+            };
+          }),
+        ),
       );
       return {
         asset,
-        outputs: [
-          { data: fallback, extension: "fallback", publicPath: asset.fallbackPath },
-          ...modern,
-        ],
+        outputs,
         sourceSize: source.length,
       };
     }),
@@ -150,10 +163,40 @@ const matchesExpectedOutput = async (actual, expected, publicPath) => {
   }
 };
 
+const escapeRegExp = (value) =>
+  value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+const getUnexpectedOutputPaths = async (root, expected) => {
+  const expectedPaths = new Set(
+    expected.flatMap(({ outputs }) => outputs.map(({ publicPath }) => publicPath)),
+  );
+  const unexpected = [];
+
+  for (const { asset } of expected) {
+    const extension = extname(asset.fallbackPath);
+    const stem = basename(asset.fallbackPath, extension).replace(/-\d+$/, "");
+    const directory = dirname(asset.fallbackPath);
+    const matcher = new RegExp(`^${escapeRegExp(stem)}(?:-\\d+)?\\.(?:jpe?g|avif|webp)$`, "i");
+    const entries = await readdir(toFilePath(root, directory)).catch((error) => {
+      if (error.code === "ENOENT") return [];
+      throw error;
+    });
+
+    for (const entry of entries) {
+      const publicPath = `${directory}/${entry}`;
+      if (matcher.test(entry) && !expectedPaths.has(publicPath)) {
+        unexpected.push(publicPath);
+      }
+    }
+  }
+
+  return unexpected.sort();
+};
+
 const checkParity = async (root, expected) => {
   const mismatches = [];
   for (const { outputs } of expected) {
-    for (const { data, publicPath } of outputs) {
+    for (const { data, height, publicPath, width } of outputs) {
       let actual;
       try {
         actual = await readFile(toFilePath(root, publicPath));
@@ -161,11 +204,28 @@ const checkParity = async (root, expected) => {
         mismatches.push(`${publicPath}: missing or unreadable (${error.message})`);
         continue;
       }
+      let metadata;
+      try {
+        metadata = await sharp(actual).metadata();
+      } catch (error) {
+        mismatches.push(`${publicPath}: invalid image (${error.message})`);
+        continue;
+      }
+      if (metadata.width !== width || metadata.height !== height) {
+        mismatches.push(
+          `${publicPath}: dimensions ${metadata.width}x${metadata.height}; expected ${width}x${height}`,
+        );
+      }
       if (!(await matchesExpectedOutput(actual, data, publicPath))) {
         mismatches.push(`${publicPath}: content mismatch`);
       }
     }
   }
+  mismatches.push(
+    ...(await getUnexpectedOutputPaths(root, expected)).map(
+      (publicPath) => `${publicPath}: unexpected generated output`,
+    ),
+  );
   if (mismatches.length > 0) {
     throw new Error(`Image output parity check failed:\n- ${mismatches.join("\n- ")}`);
   }
@@ -194,12 +254,19 @@ export const runImagePipeline = async ({
       await mkdir(dirname(outputPath), { recursive: true });
       await writeFile(outputPath, data);
     }
-    const outputSize = (extension) =>
-      outputs.find((output) => output.extension === extension)?.data.length;
+    const outputSummary = outputs
+      .map(({ data, publicPath }) => `${publicPath} ${data.length} B`)
+      .join(", ");
     log(
-      `${asset.fallbackPath}: source ${sourceSize} B, fallback ${outputSize("fallback")} B, AVIF ${outputSize("avif")} B, WebP ${outputSize("webp")} B`,
+      `${asset.sourcePath}: source ${sourceSize} B, ${outputSummary}`,
     );
   }
+
+  await Promise.all(
+    (await getUnexpectedOutputPaths(root, expected)).map((publicPath) =>
+      rm(toFilePath(root, publicPath)),
+    ),
+  );
 };
 
 const isMain =

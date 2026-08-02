@@ -181,13 +181,18 @@
 
 These items are evidence-supported opportunities. They are not release blockers or unresolved audit findings.
 
-- [ ] **O-01 — Add measured responsive hero-image variants**
-  - [ ] measure current hero transfer and rendered widths at representative supported viewports before choosing candidates or a byte budget
-  - [ ] extend `scripts/image-config.mjs` with justified width candidates and retain canonical originals under `assets/image-sources/`
-  - [ ] extend the Sharp pipeline and read-only parity coverage to generate and validate every approved JPEG, AVIF, and WebP candidate without fallback promotion
-  - [ ] add accurate `srcset` and `sizes` contracts to the homepage and contact hero markup
-  - [ ] align PWA asset ownership, request budgets, and focused image-delivery coverage with browser candidate selection
-  - [ ] run the focused image, PWA, responsive, and visual verification required by the final candidate set
+- [x] **O-01 — Add measured responsive hero-image variants**
+  - [x] measure current hero transfer and rendered widths at representative supported viewports before choosing candidates or a byte budget
+  - [x] extend `scripts/image-config.mjs` with justified width candidates and retain canonical originals under `assets/image-sources/`
+  - [x] extend the Sharp pipeline and read-only parity coverage to generate and validate every approved JPEG, AVIF, and WebP candidate without fallback promotion
+  - [x] add accurate `srcset` and `sizes` contracts to the homepage and contact hero markup
+  - [x] align PWA asset ownership, request budgets, and focused image-delivery coverage with browser candidate selection
+  - [x] run the focused image, PWA, responsive, and visual verification required by the final candidate set
+  - **Verified implementation:**
+    - generated JPEG, AVIF, and WebP candidates at `540w`, `720w`, and `1080w` from each canonical 1600×1200 hero source
+    - measured AVIF delivery: `720w` at 320/390 px DPR 2 (74–82 KB), `1080w` at 768 px DPR 2 (143–181 KB), and `540w` at 1440 px DPR 1 (46 KB)
+    - focused browser coverage confirmed candidate selection, clean diagnostics, LCP participation, and visual rendering for homepage and contact heroes
+    - Vite PWA static precache retains fallback JPEGs only and contains 31 entries
   - **Depends on:** `PH3-06`
   - **Value:** reduce unnecessary hero-image transfer on narrow viewports using measured, source-generated candidates
   - **Scope boundary:** non-blocking performance refinement; do not select widths or budgets without measurements

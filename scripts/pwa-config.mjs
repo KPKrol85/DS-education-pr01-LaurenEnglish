@@ -1,7 +1,7 @@
 import { ALL_PAGES, INDEXABLE_PAGES, SITE } from "./site-config.mjs";
 import {
   CONTENT_IMAGE_ASSETS,
-  CONTENT_IMAGE_PATHS,
+  getFallbackImagePath,
   getImagePaths,
 } from "./image-config.mjs";
 
@@ -148,18 +148,21 @@ export const MANIFEST_SCREENSHOT_PATHS = Object.freeze([
   "/assets/pwa/screenshots/home-mobile-720x1280.png",
 ]);
 
-export const HERO_IMAGE_PATH = CONTENT_IMAGE_ASSETS.find(
+export const HOMEPAGE_HERO_ASSET = CONTENT_IMAGE_ASSETS.find(
   ({ key }) => key === "homepage-hero",
-).fallbackPath;
+);
+export const HERO_IMAGE_PATH = getFallbackImagePath(HOMEPAGE_HERO_ASSET);
 export const HERO_IMAGE_PATHS = Object.freeze(
-  getImagePaths(CONTENT_IMAGE_ASSETS[0]),
+  getImagePaths(HOMEPAGE_HERO_ASSET),
 );
 export const BRAND_LOGO_PATH = SITE.brandLogo.path;
 export const THEME_ICON_PATHS = Object.freeze([
   "/assets/icons/sun.svg",
   "/assets/icons/moon.svg",
 ]);
-export const OFFLINE_PAGE_IMAGE_PATHS = Object.freeze([...CONTENT_IMAGE_PATHS]);
+export const OFFLINE_PAGE_IMAGE_PATHS = Object.freeze(
+  CONTENT_IMAGE_ASSETS.map(getFallbackImagePath),
+);
 
 export const STATIC_PRECACHE_PATHS = Object.freeze([
   ...FONT_PATHS,
@@ -186,7 +189,8 @@ export const CRITICAL_ASSET_BUDGET = Object.freeze({
   preloadedFontRequests: 1,
   brandLogoRequests: 1,
   heroImageRequests: 1,
-  maximumHeroImageBytes: 1_100_000,
+  maximumHeroImageBytes: 270_000,
+  maximumHeroAvifTransferBytes: 190_000,
   maximumInitialFontBytes: 270_000,
 });
 

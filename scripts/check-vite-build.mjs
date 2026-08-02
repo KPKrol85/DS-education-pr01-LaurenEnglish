@@ -18,6 +18,14 @@ const assert = (condition, message) => {
   if (!condition) throw new Error(message);
 };
 
+const getSrcsetReferences = (html) =>
+  [...html.matchAll(/\bsrcset=["']([^"']+)["']/g)].flatMap((match) =>
+    match[1]
+      .split(",")
+      .map((candidate) => candidate.trim().split(/\s+/)[0])
+      .filter(Boolean),
+  );
+
 const getStats = async (path) => {
   try {
     return await stat(path);
@@ -82,6 +90,7 @@ const builtPages = await Promise.all(
 
 for (const page of builtPages) {
   const runtimeReferences = getRuntimeReferences(page.html);
+  const srcsetReferences = getSrcsetReferences(page.html);
 
   assert(runtimeReferences.includes(cssRuntimePath), `${page.file}: Vite-generated CSS bundle is missing`);
 
@@ -94,6 +103,8 @@ for (const page of builtPages) {
   assert(!runtimeReferences.includes("/js/main.js"), `${page.file}: direct canonical JavaScript reference remains active`);
 
   assert(!runtimeReferences.some((path) => path.startsWith("/assets/build/")), `${page.file}: legacy assets/build reference remains active`);
+
+  assert(!srcsetReferences.some((path) => path.startsWith("/assets/image-sources/")), `${page.file}: canonical image source appears in a responsive source set`);
 }
 
 for (const file of REQUIRED_ROOT_FILES) {
