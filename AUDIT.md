@@ -60,25 +60,13 @@ None detected.
 
 ## 7. Extra quality improvements
 
-### Add measured responsive hero image candidates
-
-- **Relevant area:** Image pipeline, responsive performance
-- **Current evidence:** `scripts/image-config.mjs:31-34` defines one `1600 × 1200` homepage hero output per format, while `index.html:160-168` supplies one URL per AVIF, WebP, and JPEG source without width descriptors or `sizes`. The current selected AVIF remains within the configured byte budget.
-- **Potential value:** Measured smaller candidates could reduce transferred hero bytes on narrow displays while retaining the existing art direction and explicit dimensions.
-- **Scope boundary:** This is optional until real-device or lab measurement shows a material benefit; the current image contract is valid and passes its configured budget.
-
-### Pin the Node toolchain and expose one read-only static gate
-
-- **Relevant area:** Development reproducibility, maintenance workflow
-- **Current evidence:** `README.md:90` and `README.md:302` explicitly state that no Node.js version is declared, while `package.json:7-38` exposes the relevant validators as separate commands without one non-writing aggregate check.
-- **Potential value:** A reviewed Node/npm contract and one aggregate read-only command would reduce environment drift and make local or CI static verification easier to reproduce.
-- **Scope boundary:** This is an optional workflow enhancement; the committed lockfile is present, current lint/static checks pass, and both dependency audits are clean.
+None outstanding. The previously recorded responsive hero-candidate and Node toolchain improvements are implemented, verified, and recorded in the changelog rather than retained as audit entries.
 
 ## 8. Current readiness conclusion
 
 **Status:** Ready within verified scope
 
-The current product implementation is ready within its documented static-site and PWA scope. No unresolved critical, high-priority, or moderate defect was confirmed, and the final repository browser gate is complete. Optional image-candidate and toolchain improvements remain non-blocking and do not reduce release readiness.
+The current product implementation is ready within its documented static-site and PWA scope. No unresolved critical, high-priority, or moderate defect was confirmed, and the final repository browser gate is complete. No optional improvement remains open, so release readiness is unchanged.
 
 ## 9. Senior rating
 
