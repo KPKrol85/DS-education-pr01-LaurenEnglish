@@ -7,10 +7,6 @@
 # working tree keeps `npm run check:html` and `npm run build:html` idempotent.
 * text=auto eol=lf
 
-# The Windows launcher is executed by cmd.exe, which parses multi-line
-# `if ... (` blocks unreliably without CRLF, so it keeps CRLF in the working tree.
-*.bat text eol=crlf
-
 # Binary assets tracked in this repository: never apply text or EOL conversion.
 *.avif binary
 *.ico binary
