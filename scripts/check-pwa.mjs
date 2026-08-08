@@ -282,6 +282,46 @@ const assertUniquePaths = (paths, label) => {
   );
 };
 
+const getMarkupImagePaths = (html) =>
+  (html.match(/<(?:img|source)\b[^>]*>/gi) ?? [])
+    .flatMap((tag) => [
+      getAttribute(tag, "src"),
+      ...(getAttribute(tag, "srcset")?.split(",") ?? []),
+    ])
+    .map((candidate) => candidate?.trim().split(/\s+/)[0] ?? "")
+    .filter((path) => path.startsWith("/"));
+
+// The precache is only as good as the resource the browser actually requests.
+// Every candidate the precached documents can select must therefore resolve
+// from the same precache, otherwise offline rendering depends on viewport,
+// device density or format support instead of the cache contract.
+const verifyOfflineDocumentImageCoverage = async (build) => {
+  const documentPaths = build.precachePaths.filter((path) =>
+    path.endsWith(".html"),
+  );
+  assert(
+    documentPaths.length > 0,
+    "Offline precache must contain published HTML documents",
+  );
+
+  const precachedPaths = new Set(build.precachePaths);
+  const uncoveredReferences = new Set();
+  for (const documentPath of documentPaths) {
+    const html = await readText(publicFile(documentPath));
+    for (const imagePath of getMarkupImagePaths(html)) {
+      if (!precachedPaths.has(normalizePublicPath(imagePath))) {
+        uncoveredReferences.add(`${documentPath} -> ${imagePath}`);
+      }
+    }
+  }
+  assert(
+    uncoveredReferences.size === 0,
+    `Precached documents reference images outside the offline precache: ${[...uncoveredReferences].join(", ")}`,
+  );
+
+  return documentPaths.length;
+};
+
 const getCssFiles = async (directory) => {
   const entries = await readdir(directory, { withFileTypes: true });
   const files = [];
@@ -1041,6 +1081,7 @@ const runRoot = async () => {
     INDEXABLE_PAGES.length === PRIMARY_DOCUMENT_PATHS.length,
     "PWA primary-document policy must match the site route registry",
   );
+  await verifyOfflineDocumentImageCoverage(build);
 
   console.log(
     `Verified PWA cache ${build.cacheName}, ${PRECACHE_PATHS.length} precache entries, ${runtimeGraphs.cssGraph.length} CSS files, ${runtimeGraphs.javascriptGraph.length} JavaScript modules, ${manifest.icons.length} install icons, ${manifest.shortcuts.length} shortcuts, ${manifest.screenshots.length} screenshots, hero ${criticalAssets.heroBytes} bytes, and ${FONT_PATHS.length} fonts totaling ${criticalAssets.fontBytes} bytes.`,
@@ -1053,6 +1094,11 @@ const runVite = async () => {
     verifyManifestAndIcons(),
   ]);
   const runtimePaths = await verifyVitePrecacheContract(build);
+  const offlineDocumentCount = await verifyOfflineDocumentImageCoverage(build);
+  assert(
+    offlineDocumentCount === PUBLISHED_DOCUMENT_PATHS.length,
+    "Offline image coverage must be verified for every published document",
+  );
 
   console.log(
     `Verified Vite PWA cache ${build.cacheName}, ${build.precachePaths.length} precache entries, ${build.primaryDocumentPaths.length} published documents, ${runtimePaths.length} hashed runtime assets, ${manifest.icons.length} install icons, ${manifest.shortcuts.length} shortcuts, and ${manifest.screenshots.length} screenshots.`,
