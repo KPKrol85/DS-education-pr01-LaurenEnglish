@@ -85,13 +85,22 @@ const normalizeUnicodeRange = (unicodeRange) =>
 const fontAssetKey = ({ family, style, weight, unicodeRange }) =>
   `${family}:${weight}:${style}:${normalizeUnicodeRange(unicodeRange)}`;
 
+// License files are text, so a raw-byte hash would pin the checkout's newline
+// rendering rather than the license itself. `latin1` maps bytes one-to-one, so
+// this rewrites CRLF to LF without interpreting any other byte: every wording,
+// whitespace and encoding difference still changes the hash.
+const canonicalLicenseBytes = (buffer) =>
+  Buffer.from(buffer.toString("latin1").replace(/\r\n/g, "\n"), "latin1");
+
 const LITERATA_FONT_SHA256 =
   "DACE38D75534603D7B2E727E3A5979B6C53BEDB9DB9E14D4263EF92CFCB5F3D3";
+// Hashed over the canonical LF form declared by `* text=auto eol=lf`, which is
+// also how these files are stored in the Git index.
 const PINNED_FONT_LICENSES = Object.freeze({
   "OFL-Inter.txt":
     "262481E844521B326F5ECD053E59B98C8B2DA78C8EE1BDBB6E8174305E54935A",
   "OFL-Literata.txt":
-    "5B52638039D9F63FE82BAB2CCEA1CF0312D275C49E6F1CF7E36361C256B4CE92",
+    "8742963604CD89DC81437811A850018FC03B2BFAD686D7422C8235967C87614E",
 });
 const DISTRIBUTED_FONT_LICENSES = Object.freeze({
   "inter-400.woff2": "OFL-Inter.txt",
@@ -336,7 +345,8 @@ const verifyFontLicenseCoverage = async () => {
       throw error;
     }
     assert(
-      sha256(licenseBuffer) === PINNED_FONT_LICENSES[licenseFile],
+      sha256(canonicalLicenseBytes(licenseBuffer)) ===
+        PINNED_FONT_LICENSES[licenseFile],
       `${licenseFile} must match the pinned official upstream license`,
     );
   }
