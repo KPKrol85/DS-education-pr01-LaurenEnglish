@@ -1,14 +1,15 @@
-import { spawn } from "node:child_process";
 import { mkdir } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { chromium } from "@playwright/test";
+import { createServer } from "vite";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
-const BASE_URL = "http://127.0.0.1:4173";
+const HOST = "127.0.0.1";
+const PORT = 4173;
+const BASE_URL = `http://${HOST}:${PORT}`;
 const OUTPUT_DIRECTORY = resolve(ROOT, "assets/pwa/screenshots");
-const SERVER_ENTRY = resolve(ROOT, "scripts/dev-server.py");
 
 const SCREENSHOTS = Object.freeze([
   {
@@ -21,51 +22,20 @@ const SCREENSHOTS = Object.freeze([
   },
 ]);
 
-const waitForServer = async () => {
-  const deadline = Date.now() + 30_000;
-  while (Date.now() < deadline) {
-    try {
-      const response = await fetch(`${BASE_URL}/index.html`);
-      if (response.ok) return;
-    } catch {
-      // The child server has not bound its port yet.
-    }
-    await new Promise((resolvePromise) => setTimeout(resolvePromise, 100));
-  }
-  throw new Error(`Static server did not become ready at ${BASE_URL}`);
-};
-
-const stopServer = async (server) => {
-  if (server.exitCode !== null) return;
-  server.kill();
-  await Promise.race([
-    new Promise((resolvePromise) => server.once("exit", resolvePromise)),
-    new Promise((resolvePromise) => setTimeout(resolvePromise, 5_000)),
-  ]);
-};
-
 const run = async () => {
   await mkdir(OUTPUT_DIRECTORY, { recursive: true });
-  const server = spawn(
-    "python",
-    [
-      SERVER_ENTRY,
-      "--port",
-      "4173",
-      "--no-browser",
-      "--no-live-reload",
-      "--skip-initial-build",
-    ],
-    {
-      cwd: ROOT,
-      stdio: "ignore",
-      windowsHide: true,
-    },
-  );
+
+  // The manifest screenshots capture the canonical project root, not dist/,
+  // so this uses the same Vite development server as npm run dev.
+  const server = await createServer({
+    root: ROOT,
+    logLevel: "warn",
+    server: { host: HOST, port: PORT, strictPort: true },
+  });
+  await server.listen();
 
   let browser;
   try {
-    await waitForServer();
     browser = await chromium.launch({ headless: true });
 
     for (const screenshot of SCREENSHOTS) {
@@ -95,7 +65,7 @@ const run = async () => {
     }
   } finally {
     await browser?.close();
-    await stopServer(server);
+    await server.close();
   }
 
   console.log(

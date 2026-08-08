@@ -14,7 +14,7 @@
 
 ## 1. Executive assessment
 
-Lauren English currently has no unresolved P0, P1, or P2 findings within the audited repository scope. The completed Vite migration establishes `npm run build:vite` as the production build, generates the complete twelve-page `dist/` publish directory with hashed runtime assets and a validated Service Worker, and keeps deployment manual through the explicit Netlify build-and-publish contract.
+Lauren English currently has no unresolved P0, P1, or P2 findings within the audited repository scope. The completed Vite migration establishes `npm run build` as the production build, generates the complete twelve-page `dist/` publish directory with hashed runtime assets and a validated Service Worker, and keeps deployment manual through the explicit Netlify build-and-publish contract.
 
 The latest recorded browser verification passed: the focused PWA suite completed with 10 passed, and the complete Chromium suite completed with 79 passed, 9 intentional skips, 0 failed, 0 flaky, and 0 interrupted. Previous progress-journal and README documentation findings are complete and are recorded in the changelog rather than retained as audit findings. Live deployment behavior, real Netlify Forms submission, real devices, non-Chromium browsers, assistive technologies, Lighthouse, and hosting-level configuration remain outside the verified scope.
 
@@ -27,9 +27,9 @@ The review covered:
 - the token-first CSS graph, responsive layouts, light and dark themes, focus treatment, reduced-motion handling, controls, forms, cards, navigation, and page-specific styles
 - canonical JavaScript modules, guarded initialization, mobile navigation, accordions, materials filtering, anchor focus, theme persistence, progress-journal state, storage normalization, and failure fallbacks
 - image-source configuration and generated parity, local fonts, manifest assets, Service Worker template and generated output, offline behavior, request budgets, and cache eligibility rules
-- Node assembly tooling, Python development server, Playwright configuration and tests, dependency state, deployment documentation, repository-visible security controls, and third-party attribution
+- Node assembly tooling, the local development server, Playwright configuration and tests, dependency state, deployment documentation, repository-visible security controls, and third-party attribution
 
-Current repository evidence confirms that PH3-06 is complete: Vite produces the twelve-page `dist/` output, the generated Service Worker is validated from the final asset graph, Playwright builds and serves only `dist/`, and `netlify.toml` defines the manual `npm run build:vite` and `dist` contract.
+Current repository evidence confirms that PH3-06 is complete: Vite produces the twelve-page `dist/` output, the generated Service Worker is validated from the final asset graph, Playwright builds and serves only `dist/`, and `netlify.toml` defines the manual `npm run build` and `dist` contract.
 
 The latest release gate recorded a focused PWA result of 10 passed and a complete Chromium result of 79 passed, 9 intentional skips, 0 failed, 0 flaky, and 0 interrupted. The existing changelog records completed image, progress-journal, dependency, documentation, PWA, and Vite migration work without creating a new release version.
 

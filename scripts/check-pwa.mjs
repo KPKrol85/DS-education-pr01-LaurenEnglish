@@ -64,7 +64,7 @@ const validationTarget = Object.freeze(
         publishRoot: DIST_ROOT,
         outputPath: DIST_OUTPUT_PATH,
         createBuild: createViteServiceWorkerBuild,
-        rebuildCommand: "npm run build:vite",
+        rebuildCommand: "npm run build",
       }
     : {
         label: "PWA",

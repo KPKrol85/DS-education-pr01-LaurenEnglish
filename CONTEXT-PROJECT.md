@@ -58,7 +58,7 @@ The project uses:
 - Node.js ESM assembly and validation scripts
 - a Vite multi-page production build with PostCSS, `postcss-import`, and cssnano
 - Sharp image processing
-- a source-oriented Python 3 development server
+- the Vite development server for local work
 - Playwright browser verification
 - ESLint and Prettier
 - progressive enhancement
@@ -197,7 +197,7 @@ Prefer optimized local assets, responsive images, explicit image dimensions, laz
 
 Canonical CSS and JavaScript remain under `css/` and `js/`. They are source entrypoints, not files maintained inside generated output.
 
-`npm run build:vite` assembles all twelve standalone HTML documents, stages approved public assets, and emits production HTML with hashed CSS and JavaScript under `dist/build/`.
+`npm run build` assembles all twelve standalone HTML documents, stages approved public assets, and emits production HTML with hashed CSS and JavaScript under `dist/build/`.
 
 The deployed worker is generated as `dist/service-worker.js` from the final Vite asset graph. Direct `/css/` and `/js/` requests, the root generated worker, and retired `assets/build/` output are not part of the active production publish contract.
 
@@ -228,17 +228,17 @@ Development changes must be made in source files.
 
 Canonical ownership remains with the root HTML documents, `css/`, `js/`, `scripts/`, configuration files, Service Worker template, and approved source assets. Generated regions must be refreshed through their owning scripts.
 
-`npm run dev` remains the source-oriented Python workflow on port `8181`; it serves the project root with HTML assembly and live reload and does not serve `dist/`. Its local PWA cleanup is limited to the project registration and cache prefix.
+`npm run dev` is the canonical development workflow: it assembles HTML, stages `.vite-public/`, and starts the Vite development server on the pinned port `5173`. It serves the project root, not `dist/`, reruns HTML assembly when an assembler dependency changes, and its local PWA cleanup is limited to the project registration and cache prefix.
 
-`npm run build:vite` runs HTML assembly, stages approved root files and asset directories through the generated `.vite-public/` directory, builds all pages into `dist/`, and then generates `dist/service-worker.js` from the final hashed runtime graph.
+`npm run build` runs HTML assembly, stages approved root files and asset directories through the generated `.vite-public/` directory, builds all pages into `dist/`, and then generates `dist/service-worker.js` from the final hashed runtime graph.
 
 `dist/` is generated, ignored, disposable publish output. Do not manually edit its HTML, hashed bundles, Service Worker, copied assets, or other files.
 
-The root-oriented `npm run build` and `npm run build:sw` commands remain compatibility workflows until a later cleanup phase; they do not define the active production deployment.
+`npm run build:sw` generates the tracked root `service-worker.js` validated by `npm run check:pwa`. It is a source-level contract and is not part of the published output.
 
 `npm run check:vite` validates the production page and asset graph, while `npm run check:pwa:vite` validates the generated Vite PWA contract.
 
-The main Playwright configuration runs `npm run build:vite` and serves only `dist/` through Vite preview. Ordinary suites block Service Workers; PWA coverage enables them explicitly.
+The main Playwright configuration runs `npm run build` and serves only `dist/` through Vite preview. Ordinary suites block Service Workers; PWA coverage enables them explicitly.
 
 `netlify.toml` owns the production build command and publish directory. Deployment remains a manual terminal action against the existing Netlify project; commits and pushes do not trigger production deployment.
 
