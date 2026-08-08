@@ -51,7 +51,7 @@ const initThemeToggle = () => {
   });
 };
 
-const isLocalDevelopmentOrigin = () => ["5173", "8181"].includes(location.port) && ["127.0.0.1", "localhost"].includes(location.hostname);
+const isLocalDevelopmentOrigin = () => location.port === "5173" && ["127.0.0.1", "localhost"].includes(location.hostname);
 
 const isProjectServiceWorker = (registration) =>
   [registration.active, registration.waiting, registration.installing].filter(Boolean).some((worker) => {

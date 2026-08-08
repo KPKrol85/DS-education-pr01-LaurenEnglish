@@ -1,5 +1,5 @@
 const CACHE_PREFIX = "lauren-english-v";
-const CACHE_REVISION = "1.0.0-a5341032a150";
+const CACHE_REVISION = "1.0.0-dad8dcc8dfa5";
 const CACHE_NAME = `${CACHE_PREFIX}${CACHE_REVISION}`;
 const OFFLINE_PATH = "/offline.html";
 const PRECACHE_PATHS = [

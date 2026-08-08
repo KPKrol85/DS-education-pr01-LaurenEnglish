@@ -47,7 +47,7 @@ const assertDirectory = async (path, message) => {
 
 const getRuntimeReferences = (html) => [...html.matchAll(/\b(?:href|src)=["']([^"']+)["']/g)].map((match) => match[1]);
 
-await assertDirectory(DIST_ROOT, "Vite publish directory is missing; run npm run build:vite");
+await assertDirectory(DIST_ROOT, "Vite publish directory is missing; run npm run build");
 
 await assertDirectory(BUILD_ROOT, "Vite build asset directory is missing from dist/build");
 

@@ -3,14 +3,13 @@
 ## Build
 
 - Odtwórz zatwierdzony graf zależności z `package-lock.json`: `npm ci`.
-- Utwórz kompletny output publikacyjny: `npm run build:vite`.
+- Utwórz kompletny output publikacyjny: `npm run build`.
 - Sprawdź dwanaście stron, haszowane bundle, zasoby i wykluczone ścieżki: `npm run check:vite`.
 - Sprawdź produkcyjny manifest, precache i Service Worker: `npm run check:pwa:vite`.
 - Sprawdź parity i semantykę wspólnego shellu: `npm run check:html`.
 - Sprawdź integralność publicznych treści i destinations: `npm run check:content`.
 - Sprawdź tokeny, selektory i kontrast obu motywów: `npm run check:css`.
 - Sprawdź routing, indeksowanie, metadane, JSON-LD, sitemapę i robots: `npm run check:seo`.
-- Sprawdź lokalny serwer, live reload i rebuild HTML: `npm run check:dev`.
 - Po celowej zmianie UI odtwórz aktualne screenshoty manifestu: `npm run build:pwa-screenshots`.
 - Potwierdź, że `dist/` zawiera:
   - wszystkie dokumenty z `ALL_PAGES` w `scripts/site-config.mjs`;
@@ -20,7 +19,7 @@
   - screenshoty manifestu `dist/assets/pwa/screenshots/home-desktop-1280x720.png` i `dist/assets/pwa/screenshots/home-mobile-720x1280.png`.
 - Sprawdź, czy `dist/service-worker.js` nie zawiera placeholderów, a rewizja cache ma postać `<version z package.json>-<12 znaków fingerprintu>`.
 - Potwierdź, że `dist/` nie zawiera kanonicznych `css/`, `js/`, `scripts/`, `.vite-public/`, `assets/image-sources/`, lokalnej `.netlify/` ani raportów testowych.
-- Rootowe `npm run build`, `npm run build:sw` i `npm run check:pwa` pozostają kontraktem zgodności dla źródeł, a nie aktywnym workflow publikacji.
+- Rootowe `npm run build:sw` i `npm run check:pwa` pozostają kontraktem źródłowym; rootowy `service-worker.js` nie jest publikowany.
 
 ## Runtime assets
 
@@ -34,13 +33,12 @@
 
 ## Lokalny development
 
-- Uruchom `start-dev.bat` dwuklikiem w Windows albo użyj `npm run dev`; wymagany jest Python 3, a serwer działa wyłącznie na `http://127.0.0.1:8181/`.
-- Potwierdź, że launcher zgłasza zajęty port czytelnym błędem, składa HTML przed startem, pozostaje w foreground i zatrzymuje się po `Ctrl+C`.
-- Potwierdź automatyczne otwarcie przeglądarki, nagłówki `no-store`, poprawne MIME oraz projektowy `404.html` z prawdziwym statusem `404`.
-- Zmień zwykłe źródło CSS/JS i potwierdź pojedynczy reload. Następnie zmień zależność assemblera (`scripts/shared-shell.mjs`, konfigurację strony, renderer lub kanoniczne dane) i potwierdź, że `npm run build:html` kończy się przed reloadem.
-- Wymuś błąd assemblera wyłącznie w kontrolowanej lokalnej próbie: konsola ma pokazać błąd, reload ma zostać wstrzymany, a kolejna poprawna zmiana ma przywrócić workflow. Nie zostawiaj uszkodzonych źródeł.
-- Potwierdź brak pętli po outputach: watcher pomija `.git/`, `.codex/`, `.agents/`, `.vite-public/`, `dist/`, `node_modules/`, raporty testowe, `service-worker.js` i pliki tymczasowe edytora.
-- Na porcie `8181` potwierdź wyrejestrowanie wyłącznie `/service-worker.js` oraz usunięcie wyłącznie cache `lauren-english-v*`; obce rejestracje i cache muszą pozostać.
+- Uruchom `npm run dev`; polecenie składa HTML, przygotowuje `.vite-public/` i startuje serwer Vite wyłącznie na `http://localhost:5173/`.
+- Potwierdź, że przypięty port (`strictPort`) zgłasza zajęty port błędem zamiast cichej zmiany adresu, a serwer pozostaje w foreground i zatrzymuje się po `Ctrl+C`.
+- Potwierdź, że serwowany jest kanoniczny root projektu, a nie `dist/`, oraz że nieznana ścieżka pozostaje prawdziwym `404` bez fallbacku SPA.
+- Zmień zwykłe źródło CSS/JS i potwierdź aktualizację w przeglądarce. Następnie zmień zależność assemblera (`scripts/shared-shell.mjs`, konfigurację strony, renderer lub kanoniczne dane) i potwierdź, że `npm run build:html` kończy się przed przeładowaniem.
+- Wymuś błąd assemblera wyłącznie w kontrolowanej lokalnej próbie: konsola serwera ma pokazać błąd, poprzedni wygenerowany HTML ma pozostać nienaruszony, a kolejna poprawna zmiana ma przywrócić workflow. Nie zostawiaj uszkodzonych źródeł.
+- Na porcie `5173` potwierdź wyrejestrowanie wyłącznie `/service-worker.js` oraz usunięcie wyłącznie cache `lauren-english-v*`; obce rejestracje i cache muszą pozostać.
 
 ## Responsive smoke test
 
@@ -52,7 +50,7 @@
 
 - Odtwórz zatwierdzony graf zależności z `package-lock.json`: `npm ci`.
 - Zainstaluj Chromium: `npx playwright install chromium`.
-- Uruchom pełny zestaw przez `npm run test:e2e`; współdzielony serwer Playwrighta wykona `npm run build:vite` i poda wyłącznie `dist/` przez Vite preview na porcie `4173`.
+- Uruchom pełny zestaw przez `npm run test:e2e`; współdzielony serwer Playwrighta wykona `npm run build` i poda wyłącznie `dist/` przez Vite preview na porcie `4173`.
 - W razie potrzeby uruchom osobno `npm run test:e2e:smoke`, `npm run test:e2e:interactions`, `npm run test:e2e:theme` lub `npm run test:e2e:responsive`; mapowania muszą pozostać zgodne z `package.json`.
 - Routing i metadane uruchom przez `npm run test:e2e:seo`; trasy z `INDEXABLE_PAGES` i wymagane zasoby muszą zwracać `200`, a nieznane ścieżki prawdziwy HTTP `404` bez fallbacku SPA.
 - Lifecycle i offline uruchom przez `npm run test:e2e:pwa`; izolowany kontrakt Vite PWA pozostaje dostępny jako `npm run test:e2e:pwa:vite` na porcie `4274`. Oba zestawy jawnie włączają Service Workery.
@@ -71,7 +69,7 @@
 
 ## Service Worker i offline
 
-- `npm run build:sw:vite`, wywoływane przez `npm run build:vite`, generuje `dist/service-worker.js` dopiero po odkryciu finalnych assetów w `dist/build/`. Precache musi dokładnie łączyć `PUBLISHED_DOCUMENT_PATHS`, odkryte haszowane assety runtime i `STATIC_PRECACHE_PATHS`, bez ścieżek źródłowych lub developerskich.
+- `npm run build:sw:vite`, wywoływane przez `npm run build`, generuje `dist/service-worker.js` dopiero po odkryciu finalnych assetów w `dist/build/`. Precache musi dokładnie łączyć `PUBLISHED_DOCUMENT_PATHS`, odkryte haszowane assety runtime i `STATIC_PRECACHE_PATHS`, bez ścieżek źródłowych lub developerskich.
 - Oczekuj jednego bieżącego cache `lauren-english-v<version>-<fingerprint>`. Identyczne wejścia nie zmieniają rewizji; zmiana szablonu, konfiguracji lub treści precache zmienia fingerprint.
 - Instalacja jest atomowa z perspektywy aktywnego workera: `skipWaiting` następuje dopiero po pełnym precache, a błąd usuwa niekompletny nowy cache. Aktywacja przejmuje klientów i usuwa wyłącznie starsze cache zaczynające się od `lauren-english-v`; inne cache originu muszą pozostać.
 - Online wszystkie trasy z `PUBLISHED_DOCUMENT_PATHS`, wyprowadzone z `ALL_PAGES`, działają network-first. Tylko pełna, nieprzekierowana odpowiedź HTML `200` znanej trasy może odświeżyć jej wpis. Nieznana trasa online pozostaje realnym `404` i nie jest zapisywana.
@@ -87,7 +85,7 @@
 
 ## Netlify
 
-- Rootowy `netlify.toml` musi definiować `[build]`, `command = "npm run build:vite"` oraz `publish = "dist"` bez duplikowania reguł z `_redirects`.
+- Rootowy `netlify.toml` musi definiować `[build]`, `command = "npm run build"` oraz `publish = "dist"` bez duplikowania reguł z `_redirects`.
 - Deployment produkcyjny pozostaje manualną czynnością terminalową wobec istniejącego projektu i adresu. Commity ani pushe nie uruchamiają deploymentu, a repozytorium nie konfiguruje GitHub continuous deployment, branch deployów ani workflow GitHub Actions.
 - `.netlify/` pozostaje lokalne i ignorowane; nie zapisuj w śledzonej konfiguracji identyfikatorów witryny, tokenów, credentials ani metadanych linkowania.
 - Potwierdź, że `dist/` zawiera wszystkie dwanaście dokumentów z `ALL_PAGES`, haszowane `build/`, wymagane `assets/`, `dist/service-worker.js`, manifest, sitemapę, robots i `_redirects`.

@@ -12,7 +12,7 @@ export const createVitePreviewServer = (baseUrl) => {
   }
 
   return {
-    command: `npm run build:vite && npm exec vite -- preview --host ${url.hostname} --port ${url.port} --strictPort`,
+    command: `npm run build && npm exec vite -- preview --host ${url.hostname} --port ${url.port} --strictPort`,
     cwd: ROOT,
     url: new URL("/index.html", url).href,
     reuseExistingServer: false,
