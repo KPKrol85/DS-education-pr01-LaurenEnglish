@@ -9,10 +9,14 @@ const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const PUBLIC_PAGES = Object.freeze(ALL_PAGES.map(({ file }) => file));
 const APPROVED_CONTACT = FOOTER_CONTACT;
 
+// The project disclosure is the one region allowed to state the build's provenance.
+const PROJECT_DISCLOSURE_REGION = /<!-- project-disclosure:start -->[\s\S]*?<!-- project-disclosure:end -->/giu;
+
 const FORBIDDEN_PUBLIC_PATTERNS = Object.freeze([
   {
     label: "developer, portfolio, or conceptual-project terminology",
     pattern: /\b(?:demo|mockup|fake|prototype|prototyp|portfolio|simulation|demonstracyj\w*)\b|sample project|test website|portfolio simulation|projekt koncepcyjny|aktywną ofertą handlową/iu,
+    outsideProjectDisclosure: true,
   },
   {
     label: "unsupported testimonial markup",
@@ -69,8 +73,9 @@ for (const file of PUBLIC_PAGES) {
   const html = await readFile(resolve(ROOT, file), "utf8");
   pages.set(file, html);
 
-  for (const { label, pattern } of FORBIDDEN_PUBLIC_PATTERNS) {
-    assert(!pattern.test(html), `${file}: ${label}`);
+  const productHtml = html.replace(PROJECT_DISCLOSURE_REGION, "");
+  for (const { label, pattern, outsideProjectDisclosure } of FORBIDDEN_PUBLIC_PATTERNS) {
+    assert(!pattern.test(outsideProjectDisclosure ? productHtml : html), `${file}: ${label}`);
   }
 }
 

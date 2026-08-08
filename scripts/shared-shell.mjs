@@ -1,5 +1,6 @@
 import {
   INDEXABLE_PAGES,
+  PROJECT_DISCLOSURE,
   SHARED_SHELL_PAGES,
   SITE,
 } from "./site-config.mjs";
@@ -155,6 +156,62 @@ const renderFooterContactIcon = ({
                 <path d="${pathData}" />
               </svg>`;
 
+export const PROJECT_DISCLOSURE_COPY = Object.freeze({
+  eyebrow: "Lauren English",
+  title: "Informacja o projekcie",
+  description:
+    "Serwis „Lauren English” ma charakter demonstracyjny i został przygotowany przez KP_Code Digital Studio jako propozycja profesjonalnej strony internetowej dla nauczyciela języka angielskiego.",
+  dismissLabel: "Przejdź do strony",
+  links: Object.freeze([
+    { label: "Polityka prywatności", href: "/polityka-prywatnosci.html" },
+    { label: "Regulamin", href: "/regulamin.html" },
+    { label: "Kontakt", href: "/kontakt.html" },
+  ]),
+});
+
+export const PROJECT_DISCLOSURE_MARKERS = Object.freeze({
+  start: "    <!-- project-disclosure:start -->",
+  end: "    <!-- project-disclosure:end -->",
+});
+
+const renderProjectDisclosureLinks = () =>
+  PROJECT_DISCLOSURE_COPY.links
+    .map(
+      ({ label, href }) =>
+        `            <li><a class="project-disclosure__link" href="${href}">${label}</a></li>`,
+    )
+    .join("\n");
+
+const renderProjectDisclosure = () => `
+${PROJECT_DISCLOSURE_MARKERS.start}
+    <dialog
+      class="project-disclosure"
+      data-project-disclosure
+      data-project-disclosure-enabled="${PROJECT_DISCLOSURE.enabled}"
+      data-project-disclosure-version="${PROJECT_DISCLOSURE.version}"
+      data-project-disclosure-storage-key="${PROJECT_DISCLOSURE.storageKey}"
+      data-project-disclosure-routes="${PROJECT_DISCLOSURE.eligiblePaths.join(" ")}"
+      aria-labelledby="project-disclosure-title"
+      aria-describedby="project-disclosure-description"
+    >
+      <div class="project-disclosure__content">
+        <div class="project-disclosure__intro">
+          <p class="eyebrow project-disclosure__eyebrow">${PROJECT_DISCLOSURE_COPY.eyebrow}</p>
+          <h2 class="project-disclosure__title" id="project-disclosure-title">${PROJECT_DISCLOSURE_COPY.title}</h2>
+        </div>
+        <p class="project-disclosure__copy" id="project-disclosure-description">${PROJECT_DISCLOSURE_COPY.description}</p>
+        <nav class="project-disclosure__links" aria-label="Informacje o serwisie">
+          <ul class="project-disclosure__link-list" role="list">
+${renderProjectDisclosureLinks()}
+          </ul>
+        </nav>
+        <div class="project-disclosure__actions">
+          <button class="button button--primary" type="button" data-project-disclosure-dismiss>${PROJECT_DISCLOSURE_COPY.dismissLabel}</button>
+        </div>
+      </div>
+    </dialog>
+${PROJECT_DISCLOSURE_MARKERS.end}`;
+
 export const renderSharedHeader = (pageKey) => {
   getPage(pageKey);
   const logoCurrent = pageKey === "home" ? ' aria-current="page"' : "";
@@ -272,4 +329,5 @@ ${renderSocialLinks()}
         </div>
       </div>
     </footer>
+${renderProjectDisclosure()}
 ${SHELL_MARKERS.footerEnd}`;

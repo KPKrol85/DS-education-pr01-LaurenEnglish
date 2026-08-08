@@ -5,6 +5,10 @@
   --color-surface-soft: #eef7f4;
   --color-surface-overlay: #ffffff;
   --color-modal-backdrop: rgba(15, 23, 42, 0.56);
+  --color-modal-veil: rgba(15, 23, 42, 0.34);
+  --color-glass-surface: rgba(255, 255, 255, 0.78);
+  --color-glass-border: rgba(255, 255, 255, 0.66);
+  --color-glass-shadow: rgba(15, 23, 42, 0.16);
   --color-header-overlay: rgba(246, 247, 249, 0.92);
   --color-hero-surface-start: #f6f7f9;
   --color-hero-surface-end: #eef7f4;
@@ -44,6 +48,11 @@
   /* Shadows */
   --shadow-sm: 0 8px 24px var(--color-shadow);
   --shadow-md: 0 16px 40px var(--color-shadow);
+  --shadow-glass: 0 24px 60px var(--color-glass-shadow);
+
+  /* Blur */
+  --blur-veil: 6px;
+  --blur-glass: 16px;
 
   /* Spacing */
   --space-2xs: 4px;
@@ -93,6 +102,10 @@
   --color-surface-soft: #1c2429;
   --color-surface-overlay: #1c2429;
   --color-modal-backdrop: rgba(0, 0, 0, 0.64);
+  --color-modal-veil: rgba(0, 0, 0, 0.46);
+  --color-glass-surface: rgba(22, 27, 31, 0.82);
+  --color-glass-border: rgba(255, 255, 255, 0.14);
+  --color-glass-shadow: rgba(0, 0, 0, 0.55);
   --color-header-overlay: rgba(15, 19, 22, 0.92);
   --color-hero-surface-start: #10191a;
   --color-hero-surface-end: #152522;
