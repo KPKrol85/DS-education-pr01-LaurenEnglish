@@ -1,5 +1,5 @@
 const CACHE_PREFIX = "lauren-english-v";
-const CACHE_REVISION = "1.0.0-ca0f7c890534";
+const CACHE_REVISION = "1.0.0-68938c7ba083";
 const CACHE_NAME = `${CACHE_PREFIX}${CACHE_REVISION}`;
 const OFFLINE_PATH = "/offline.html";
 const PRECACHE_PATHS = [
@@ -69,9 +69,27 @@ const PRECACHE_PATHS = [
   "/assets/img/logo/logo.svg",
   "/assets/icons/sun.svg",
   "/assets/icons/moon.svg",
+  "/assets/img/hero/hero-01-540.jpg",
+  "/assets/img/hero/hero-01-720.jpg",
   "/assets/img/hero/hero-01-1080.jpg",
+  "/assets/img/hero/hero-01-540.avif",
+  "/assets/img/hero/hero-01-720.avif",
+  "/assets/img/hero/hero-01-1080.avif",
+  "/assets/img/hero/hero-01-540.webp",
+  "/assets/img/hero/hero-01-720.webp",
+  "/assets/img/hero/hero-01-1080.webp",
+  "/assets/img/hero/hero-08-540.jpg",
+  "/assets/img/hero/hero-08-720.jpg",
   "/assets/img/hero/hero-08-1080.jpg",
+  "/assets/img/hero/hero-08-540.avif",
+  "/assets/img/hero/hero-08-720.avif",
+  "/assets/img/hero/hero-08-1080.avif",
+  "/assets/img/hero/hero-08-540.webp",
+  "/assets/img/hero/hero-08-720.webp",
+  "/assets/img/hero/hero-08-1080.webp",
   "/assets/img/about/lauren.jpg",
+  "/assets/img/about/lauren.avif",
+  "/assets/img/about/lauren.webp",
   "/site.webmanifest",
 ];
 const PRIMARY_DOCUMENT_PATHS = [

@@ -1,6 +1,7 @@
 import { ALL_PAGES, INDEXABLE_PAGES, SITE } from "./site-config.mjs";
 import {
   CONTENT_IMAGE_ASSETS,
+  CONTENT_IMAGE_PATHS,
   getFallbackImagePath,
   getImagePaths,
 } from "./image-config.mjs";
@@ -162,9 +163,12 @@ export const THEME_ICON_PATHS = Object.freeze([
   "/assets/icons/sun.svg",
   "/assets/icons/moon.svg",
 ]);
-export const OFFLINE_PAGE_IMAGE_PATHS = Object.freeze(
-  CONTENT_IMAGE_ASSETS.map(getFallbackImagePath),
-);
+// Published documents ship every configured candidate in their `<picture>`
+// srcsets, and the browser picks one from viewport, density and format support
+// the service worker cannot predict. Caching only the JPEG fallback leaves the
+// selected AVIF or WebP candidate uncacheable offline, so the offline contract
+// covers the complete configured candidate set.
+export const OFFLINE_PAGE_IMAGE_PATHS = CONTENT_IMAGE_PATHS;
 
 export const STATIC_PRECACHE_PATHS = Object.freeze([
   ...FONT_PATHS,
