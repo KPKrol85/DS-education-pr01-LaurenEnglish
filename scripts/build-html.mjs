@@ -9,6 +9,8 @@ import {
   FOOTER_COPYRIGHT,
   FOOTER_LEGAL_LINKS,
   FOOTER_SOCIAL_LINKS,
+  PROJECT_DISCLOSURE_COPY,
+  PROJECT_DISCLOSURE_MARKERS,
   SHELL_MARKERS,
   renderSharedFooter,
   renderSharedHeader,
@@ -25,6 +27,7 @@ import {
 import {
   ALL_PAGES,
   HEAD_SECTION_COMMENTS,
+  PROJECT_DISCLOSURE,
   SEO_MARKERS,
   SHARED_SHELL_PAGES,
   SITE,
@@ -261,9 +264,51 @@ const validatePage = async (html, page, assembledPages) => {
     footer === renderSharedFooter(),
     `${page.file}: shared footer is stale`,
   );
+  const disclosure = getRegion(
+    footer,
+    PROJECT_DISCLOSURE_MARKERS.start,
+    PROJECT_DISCLOSURE_MARKERS.end,
+    page.file,
+  );
+  const disclosureTag = disclosure.match(/<dialog\b[^>]*>/iu)?.[0] ?? "";
   assert(
-    !footer.includes("<dialog"),
-    `${page.file}: obsolete first-visit dialog markup remains`,
+    (footer.match(/<dialog\b/giu) ?? []).length === 1 &&
+      (footer.match(/\sdata-project-disclosure(?:\s|>)/gu) ?? []).length ===
+        1 &&
+      getAttribute(disclosureTag, "class") === "project-disclosure" &&
+      getAttribute(disclosureTag, "data-project-disclosure-enabled") ===
+        String(PROJECT_DISCLOSURE.enabled) &&
+      getAttribute(disclosureTag, "data-project-disclosure-version") ===
+        PROJECT_DISCLOSURE.version &&
+      getAttribute(disclosureTag, "data-project-disclosure-storage-key") ===
+        PROJECT_DISCLOSURE.storageKey &&
+      getAttribute(disclosureTag, "data-project-disclosure-routes") ===
+        PROJECT_DISCLOSURE.eligiblePaths.join(" ") &&
+      getAttribute(disclosureTag, "aria-labelledby") ===
+        "project-disclosure-title" &&
+      getAttribute(disclosureTag, "aria-describedby") ===
+        "project-disclosure-description",
+    `${page.file}: project disclosure contract changed`,
+  );
+  assert(
+    disclosure.includes(
+      `<h2 class="project-disclosure__title" id="project-disclosure-title">${PROJECT_DISCLOSURE_COPY.title}</h2>`,
+    ) &&
+      disclosure.includes(
+        `<p class="eyebrow project-disclosure__eyebrow">${PROJECT_DISCLOSURE_COPY.eyebrow}</p>`,
+      ) &&
+      disclosure.includes(
+        `<p class="project-disclosure__copy" id="project-disclosure-description">${PROJECT_DISCLOSURE_COPY.description}</p>`,
+      ) &&
+      disclosure.includes(
+        `<button class="button button--primary" type="button" data-project-disclosure-dismiss>${PROJECT_DISCLOSURE_COPY.dismissLabel}</button>`,
+      ) &&
+      PROJECT_DISCLOSURE_COPY.links.every(({ label, href }) =>
+        disclosure.includes(
+          `<a class="project-disclosure__link" href="${href}">${label}</a>`,
+        ),
+      ),
+    `${page.file}: project disclosure copy changed`,
   );
   assert(
     (

@@ -20,7 +20,8 @@ test("indexable pages open without blocking portfolio messaging", async ({
   for (const { runtimePath } of INDEXABLE_PAGES) {
     await page.goto(runtimePath, { waitUntil: "networkidle" });
     await expect(page.getByRole("main")).toBeVisible();
-    await expect(page.locator("dialog")).toHaveCount(0);
+    // An acknowledged project disclosure stays closed and out of the page copy.
+    await expect(page.locator("dialog[open]")).toHaveCount(0);
 
     const publicText = await page.locator("body").innerText();
     for (const pattern of prohibitedPublicMessaging) {

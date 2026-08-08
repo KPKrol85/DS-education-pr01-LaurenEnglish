@@ -1,8 +1,25 @@
 import { defineConfig } from "@playwright/test";
 
 import { createVitePreviewServer } from "./playwright.server.mjs";
+import { PROJECT_DISCLOSURE } from "./scripts/site-config.mjs";
 
 const BASE_URL = "http://127.0.0.1:4173";
+
+// Suites other than the disclosure spec start with the disclosure acknowledged.
+const DEFAULT_STORAGE_STATE = {
+  cookies: [],
+  origins: [
+    {
+      origin: BASE_URL,
+      localStorage: [
+        {
+          name: PROJECT_DISCLOSURE.storageKey,
+          value: PROJECT_DISCLOSURE.version,
+        },
+      ],
+    },
+  ],
+};
 
 export default defineConfig({
   testDir: "./tests/e2e",
@@ -22,6 +39,7 @@ export default defineConfig({
   use: {
     baseURL: BASE_URL,
     browserName: "chromium",
+    storageState: DEFAULT_STORAGE_STATE,
     serviceWorkers: "block",
     screenshot: "only-on-failure",
     trace: "retain-on-failure",
