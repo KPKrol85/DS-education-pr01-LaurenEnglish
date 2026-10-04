@@ -2,7 +2,8 @@
   "name": "lauren-english",
   "version": "1.0.0",
   "private": true,
-  "license": "SEE LICENSE IN LICENSE.md",
+  "author": "Kamil Król — KP_Code Digital Studio",
+  "license": "SEE LICENSE IN LICENSE",
   "engines": {
     "node": ">=22.14.0 <23",
     "npm": "10.9.x"
