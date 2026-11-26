@@ -16,7 +16,7 @@ export const createVitePreviewServer = (baseUrl) => {
     cwd: ROOT,
     url: new URL("/index.html", url).href,
     reuseExistingServer: false,
-    timeout: 30_000,
+    timeout: 120_000,
     stdout: "pipe",
     stderr: "pipe",
   };
