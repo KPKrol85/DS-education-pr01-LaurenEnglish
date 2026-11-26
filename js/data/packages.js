@@ -6,7 +6,7 @@ export const packages = Object.freeze({
     label: "Start",
     comparisonLabel: "SPOKOJNY START",
     isHighlighted: false,
-    href: "/pakiety.html#pakiet-start",
+    href: "/packages.html#pakiet-start",
     summary: "Rytm: regularne spotkania w miesiącu.",
     priceLabel: null,
     benefits: Object.freeze([
@@ -18,7 +18,7 @@ export const packages = Object.freeze({
       "Dla osób, które chcą wrócić do nauki lub uporządkować podstawy bez nadmiernego tempa.",
     cta: Object.freeze({
       label: "Zapytaj o pakiet Start",
-      href: "/kontakt.html#formularz",
+      href: "/contact.html#formularz",
     }),
   }),
   regular: Object.freeze({
@@ -26,7 +26,7 @@ export const packages = Object.freeze({
     label: "Regular",
     comparisonLabel: "STAŁA REGULARNOŚĆ",
     isHighlighted: true,
-    href: "/pakiety.html#pakiet-regular",
+    href: "/packages.html#pakiet-regular",
     homeTeaser: Object.freeze({
       description:
         "Dla osób, które chcą uczyć się systematycznie, utrzymać motywację i rozwijać umiejętności krok po kroku.",
@@ -47,7 +47,7 @@ export const packages = Object.freeze({
       "Dla osób, które chcą pracować systematycznie i rozwijać angielski w stabilnym rytmie.",
     cta: Object.freeze({
       label: "Zapytaj o pakiet Regular",
-      href: "/kontakt.html#formularz",
+      href: "/contact.html#formularz",
     }),
   }),
   intensive: Object.freeze({
@@ -55,7 +55,7 @@ export const packages = Object.freeze({
     label: "Intensive",
     comparisonLabel: "INTENSYWNY CEL",
     isHighlighted: false,
-    href: "/pakiety.html#pakiet-intensive",
+    href: "/packages.html#pakiet-intensive",
     summary: "Rytm: częstsze spotkania i szybsza informacja zwrotna.",
     priceLabel: null,
     benefits: Object.freeze([
@@ -67,7 +67,7 @@ export const packages = Object.freeze({
       "Dla osób przygotowujących się do egzaminu, ważnego projektu lub konkretnego terminu.",
     cta: Object.freeze({
       label: "Zapytaj o pakiet Intensive",
-      href: "/kontakt.html#formularz",
+      href: "/contact.html#formularz",
     }),
   }),
 });
@@ -76,5 +76,5 @@ export const packageList = Object.freeze(
   PACKAGE_KEYS.map((key) => packages[key]),
 );
 
-export const packagesSectionHref = "/pakiety.html#pakiety";
-export const packagesPageHref = "/pakiety.html";
+export const packagesSectionHref = "/packages.html#pakiety";
+export const packagesPageHref = "/packages.html";

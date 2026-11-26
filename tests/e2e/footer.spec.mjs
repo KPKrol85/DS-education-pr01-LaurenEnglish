@@ -7,8 +7,8 @@ import {
 } from "./helpers/runtime.mjs";
 
 const LEGAL_PATHS = Object.freeze([
-  "/polityka-prywatnosci.html",
-  "/regulamin.html",
+  "/privacy.html",
+  "/terms.html",
   "/cookies.html",
 ]);
 

@@ -33,7 +33,7 @@ const seedProgress = (page, state) =>
   );
 
 const openJournal = (page) =>
-  page.goto("/postepy.html", { waitUntil: "domcontentloaded" });
+  page.goto("/progress.html", { waitUntil: "domcontentloaded" });
 
 test.beforeEach(async ({ page }) => {
   await freezeDate(page);

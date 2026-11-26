@@ -6,7 +6,7 @@ import {
 } from "./helpers/runtime.mjs";
 
 test.beforeEach(async ({ page }) => {
-  await page.goto("/materialy.html", { waitUntil: "domcontentloaded" });
+  await page.goto("/materials.html", { waitUntil: "domcontentloaded" });
 });
 
 test("enhances the canonical catalogue and resets combined filters", async ({
@@ -57,7 +57,7 @@ test("keeps the fresh narrow catalogue visible without resizing", async ({
 }) => {
   const diagnostics = collectRuntimeDiagnostics(page);
   await page.setViewportSize({ width: 375, height: 844 });
-  await page.goto("/materialy.html", { waitUntil: "domcontentloaded" });
+  await page.goto("/materials.html", { waitUntil: "domcontentloaded" });
 
   const filters = page.getByRole("form", {
     name: "Filtry katalogu materiałów",
@@ -113,7 +113,7 @@ test("keeps meaningful canonical catalogue content without JavaScript", async ({
   const context = await browser.newContext({ javaScriptEnabled: false });
   const page = await context.newPage();
 
-  await page.goto("/materialy.html", { waitUntil: "domcontentloaded" });
+  await page.goto("/materials.html", { waitUntil: "domcontentloaded" });
   await expect(
     page.getByRole("heading", { name: "Katalog materiałów" }),
   ).toBeVisible();

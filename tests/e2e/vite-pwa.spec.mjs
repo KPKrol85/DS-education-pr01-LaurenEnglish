@@ -51,7 +51,7 @@ test("serves the complete Vite PWA contract offline", async ({
 
     await context.setOffline(true);
 
-    const publishedResponse = await page.goto("/regulamin.html", {
+    const publishedResponse = await page.goto("/terms.html", {
       waitUntil: "domcontentloaded",
     });
     expect(publishedResponse?.status()).toBe(200);

@@ -332,7 +332,7 @@ test.describe("responsive production contracts", () => {
         document.documentElement.style.fontSize = "";
         localStorage.setItem("theme", "dark");
       });
-      await page.goto("/pakiety.html", { waitUntil: "networkidle" });
+      await page.goto("/packages.html", { waitUntil: "networkidle" });
       await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
       await expectNoDocumentOverflow(page);
       await expectElementsContained(

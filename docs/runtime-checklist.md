@@ -23,7 +23,7 @@
 
 ## Runtime assets
 
-- Otwórz każdy opublikowany dokument z `ALL_PAGES` w `scripts/site-config.mjs` (`index.html`, `uslugi.html`, `pakiety.html`, `materialy.html`, `postepy.html`, `kontakt.html`, `404.html`, `offline.html`, `thank-you.html`, `polityka-prywatnosci.html`, `regulamin.html`, `cookies.html`) z serwera obsługującego `dist/` i w DevTools → Network upewnij się, że:
+- Otwórz każdy opublikowany dokument z `ALL_PAGES` w `scripts/site-config.mjs` (`index.html`, `services.html`, `packages.html`, `materials.html`, `progress.html`, `contact.html`, `404.html`, `offline.html`, `thank-you.html`, `privacy.html`, `terms.html`, `cookies.html`) z serwera obsługującego `dist/` i w DevTools → Network upewnij się, że:
   - dokument ładuje dokładnie jeden haszowany CSS i jeden moduł JavaScript z `/build/`; aktualne ścieżki należy odkrywać z outputu Vite, bez hardkodowania hashy;
   - nie ma requestów do kanonicznych `/css/`, `/js/` ani wycofanego `/assets/build/`;
   - `/assets/img/logo/logo.svg` zwraca HTTP 200 z MIME `image/svg+xml` i jest pobierane tylko raz mimo użycia w headerze i footerze;
@@ -61,11 +61,11 @@
 ## SEO i routing
 
 - Potwierdź origin `https://education-pr01-laurenenglish.netlify.app` w `scripts/site-config.mjs`.
-- Potwierdź, że canonical i `og:url` są identyczne na wszystkich sześciu stronach z `INDEXABLE_PAGES`: `index.html`, `uslugi.html`, `pakiety.html`, `materialy.html`, `postepy.html` i `kontakt.html`.
+- Potwierdź, że canonical i `og:url` są identyczne na wszystkich sześciu stronach z `INDEXABLE_PAGES`: `index.html`, `services.html`, `packages.html`, `materials.html`, `progress.html` i `contact.html`.
 - Potwierdź kanoniczny raster `assets/og/og.png` (`image/png`, `1200 × 630`) oraz odpowiedź HTTP `200`.
-- Potwierdź `noindex, nofollow` i brak canonical na wszystkich dokumentach z `UTILITY_PAGES`: `404.html`, `offline.html`, `thank-you.html`, `polityka-prywatnosci.html`, `regulamin.html` i `cookies.html`.
+- Potwierdź `noindex, nofollow` i brak canonical na wszystkich dokumentach z `UTILITY_PAGES`: `404.html`, `offline.html`, `thank-you.html`, `privacy.html`, `terms.html` i `cookies.html`.
 - Potwierdź, że `sitemap.xml` zawiera wyłącznie sześć tras z `INDEXABLE_PAGES`, bez niezweryfikowanych `lastmod`.
-- Potwierdź pojedynczy wpis `Sitemap:` w `robots.txt` i brak catch-all rewrite do `index.html` w `_redirects`.
+- Potwierdź pojedynczy wpis `Sitemap:` w `robots.txt`. W `dist/_redirects` sprawdź siedem reguł HTTP 301 dla dawnych polskich adresów, rewrite HTTP 200 z `/thank-you` na `/thank-you.html` i brak reguł catch-all.
 
 ## Service Worker i offline
 
@@ -78,7 +78,7 @@
 
 ## Manifest i krytyczne zasoby
 
-- `/site.webmanifest` musi zwrócić `application/manifest+json`, zawierać komplet wymaganych pól, dokładnie trzy unikalne skróty do `/pakiety.html`, `/materialy.html` i `/postepy.html`, instalacyjne PNG `192 × 192` i `512 × 512` oraz screenshoty `1280 × 720` (`wide`) i `720 × 1280` (`narrow`). Wszystkie trasy i assety muszą zwracać `200`, a rozmiary i MIME muszą odpowiadać deklaracjom.
+- `/site.webmanifest` musi zwrócić `application/manifest+json`, zawierać komplet wymaganych pól, dokładnie trzy unikalne skróty do `/packages.html`, `/materials.html` i `/progress.html`, instalacyjne PNG `192 × 192` i `512 × 512` oraz screenshoty `1280 × 720` (`wide`) i `720 × 1280` (`narrow`). Wszystkie trasy i assety muszą zwracać `200`, a rozmiary i MIME muszą odpowiadać deklaracjom.
 - Nie deklaruj `maskable`, dopóki osobna ikona nie ma zweryfikowanej strefy bezpiecznej.
 - Hero ma używać `<picture>` z kolejnością AVIF, WebP i fallbackiem JPEG `/assets/img/hero/hero-01.jpg`; przeglądarka ma pobrać dokładnie jeden obsługiwany wariant o wymiarach `1600 × 1200`, z `loading="eager"`, `fetchpriority="high"` i bez przesunięcia layoutu.
 - Budżety fontów i obrazu hero muszą odpowiadać `CRITICAL_ASSET_BUDGET` w `scripts/pwa-config.mjs`. Produkcyjny request graph musi zawierać jeden haszowany CSS i jeden JavaScript z `/build/`, bez requestów do `/css/`, `/js/`, `assets/build/`, zewnętrznych fontów lub duplikatów.
@@ -89,13 +89,13 @@
 - Deployment produkcyjny pozostaje manualną czynnością terminalową wobec istniejącego projektu i adresu. Commity ani pushe nie uruchamiają deploymentu, a repozytorium nie konfiguruje GitHub continuous deployment, branch deployów ani workflow GitHub Actions.
 - `.netlify/` pozostaje lokalne i ignorowane; nie zapisuj w śledzonej konfiguracji identyfikatorów witryny, tokenów, credentials ani metadanych linkowania.
 - Potwierdź, że `dist/` zawiera wszystkie dwanaście dokumentów z `ALL_PAGES`, haszowane `build/`, wymagane `assets/`, `dist/service-worker.js`, manifest, sitemapę, robots i `_redirects`.
-- Potwierdź, że `dist/kontakt.html` zachowuje `data-netlify="true"`, honeypot `bot-field`, ukryte `form-name` i action `/thank-you.html`.
+- Potwierdź, że `dist/contact.html` zachowuje `data-netlify="true"`, honeypot `bot-field`, ukryte `form-name` i action `/thank-you.html`.
 - Nie publikuj rootowych źródeł, `.vite-public/`, `assets/image-sources/`, lokalnej konfiguracji, testów ani raportów przeglądarkowych.
 
 ## Manualna kontrola po wdrożeniu
 
 - W bezpiecznym kontekście HTTPS otwórz DevTools → Application → Service Workers i potwierdź aktywny `/service-worker.js`, właściwy scope `/` oraz kontrolę strony po odświeżeniu.
 - Kliknij **Update**, odśwież i potwierdź, że po aktywacji pozostaje jeden cache `lauren-english-v*`; cache o innej nazwie testowej nie może zostać usunięty.
-- Przy połączeniu online potwierdź `200` wszystkich tras z `PUBLISHED_DOCUMENT_PATHS` i prawdziwy `404` dla nieznanej trasy. Następnie włącz Offline i sprawdź ten sam zestaw tras oraz osobny fallback nieznanej trasy.
+- Przy połączeniu online potwierdź `200` wszystkich tras z `PUBLISHED_DOCUMENT_PATHS` i prawdziwy `404` dla nieznanej trasy. Sprawdź siedem przekierowań HTTP 301 i rewrite HTTP 200 dla `/thank-you`. Następnie włącz Offline i sprawdź opublikowane dokumenty oraz osobny fallback nieznanej trasy.
 - W Network potwierdź jeden haszowany CSS i JavaScript z `/build/`, budżety z `CRITICAL_ASSET_BUDGET`, brak `inter-500.woff2`, brak requestów `/css/`, `/js/` i `/assets/build/` oraz brak błędów konsoli, strony i zasobów.
 - Nie deklaruj zweryfikowanego browser install prompt na podstawie samych testów localhost; lokalnie potwierdzane są manifest, ikony, bezpieczny kontekst, rejestracja, aktywacja, kontrola i cache.

@@ -166,7 +166,7 @@ test("delivers configured AVIF and WebP content images through picture markup", 
     },
     {
       asset: CONTENT_IMAGE_ASSETS.find(({ key }) => key === "contact-hero"),
-      pagePath: "/kontakt.html",
+      pagePath: "/contact.html",
       selector: ".hero__image--contact",
     },
   ];
@@ -292,17 +292,17 @@ test("installs, controls the page, validates install metadata, and preserves unr
     {
       name: "Pakiety nauki",
       shortName: "Pakiety",
-      url: "/pakiety.html",
+      url: "/packages.html",
     },
     {
       name: "Materiały do nauki",
       shortName: "Materiały",
-      url: "/materialy.html",
+      url: "/materials.html",
     },
     {
       name: "Dziennik postępów",
       shortName: "Postępy",
-      url: "/postepy.html",
+      url: "/progress.html",
     },
   ]);
   expect(manifestResult.manifest.screenshots).toHaveLength(2);
@@ -318,9 +318,9 @@ test("installs, controls the page, validates install metadata, and preserves unr
     manifestResult.manifest.shortcuts,
   );
   expect(shortcutStatuses).toEqual([
-    { status: 200, url: "/pakiety.html" },
-    { status: 200, url: "/materialy.html" },
-    { status: 200, url: "/postepy.html" },
+    { status: 200, url: "/packages.html" },
+    { status: 200, url: "/materials.html" },
+    { status: 200, url: "/progress.html" },
   ]);
 
   const manifestAssets = [

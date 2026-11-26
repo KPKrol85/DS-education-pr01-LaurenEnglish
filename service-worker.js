@@ -1,14 +1,14 @@
 const CACHE_PREFIX = "lauren-english-v";
-const CACHE_REVISION = "1.0.0-68938c7ba083";
+const CACHE_REVISION = "1.0.0-211c9d9e223f";
 const CACHE_NAME = `${CACHE_PREFIX}${CACHE_REVISION}`;
 const OFFLINE_PATH = "/offline.html";
 const PRECACHE_PATHS = [
   "/index.html",
-  "/uslugi.html",
-  "/pakiety.html",
-  "/materialy.html",
-  "/postepy.html",
-  "/kontakt.html",
+  "/services.html",
+  "/packages.html",
+  "/materials.html",
+  "/progress.html",
+  "/contact.html",
   "/offline.html",
   "/css/style.css",
   "/css/tokens/tokens.css",
@@ -94,11 +94,11 @@ const PRECACHE_PATHS = [
 ];
 const PRIMARY_DOCUMENT_PATHS = [
   "/index.html",
-  "/uslugi.html",
-  "/pakiety.html",
-  "/materialy.html",
-  "/postepy.html",
-  "/kontakt.html",
+  "/services.html",
+  "/packages.html",
+  "/materials.html",
+  "/progress.html",
+  "/contact.html",
 ];
 
 const primaryDocuments = new Set(PRIMARY_DOCUMENT_PATHS);

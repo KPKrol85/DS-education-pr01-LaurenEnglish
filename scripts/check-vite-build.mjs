@@ -1,8 +1,8 @@
 import { readdir, readFile, stat } from "node:fs/promises";
-import { dirname, resolve } from "node:path";
+import { dirname, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { ALL_PAGES } from "./site-config.mjs";
+import { ALL_PAGES, renderRedirects } from "./site-config.mjs";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const DIST_ROOT = resolve(ROOT, "dist");
@@ -52,12 +52,15 @@ await assertDirectory(DIST_ROOT, "Vite publish directory is missing; run npm run
 await assertDirectory(BUILD_ROOT, "Vite build asset directory is missing from dist/build");
 
 const distEntries = await readdir(DIST_ROOT, {
+  recursive: true,
   withFileTypes: true,
 });
 
 const builtPageFiles = distEntries
   .filter((entry) => entry.isFile() && entry.name.endsWith(".html"))
-  .map((entry) => entry.name)
+  .map((entry) =>
+    relative(DIST_ROOT, resolve(entry.parentPath, entry.name)).replaceAll("\\", "/"),
+  )
   .sort();
 
 const expectedPageFiles = ALL_PAGES.map((page) => page.file).sort();
@@ -110,6 +113,9 @@ for (const page of builtPages) {
 for (const file of REQUIRED_ROOT_FILES) {
   await assertFile(resolve(DIST_ROOT, file), `Required publish file is missing: ${file}`);
 }
+
+const redirects = await readFile(resolve(DIST_ROOT, "_redirects"), "utf8");
+assert(redirects === renderRedirects(), "Published _redirects do not match the route registry");
 
 for (const directory of REQUIRED_ASSET_DIRECTORIES) {
   await assertDirectory(resolve(DIST_ROOT, "assets", directory), `Required runtime asset directory is missing: assets/${directory}`);

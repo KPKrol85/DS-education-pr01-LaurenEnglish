@@ -1,1 +1,8 @@
 /thank-you    /thank-you.html   200
+/uslugi.html    /services.html   301
+/pakiety.html    /packages.html   301
+/materialy.html    /materials.html   301
+/postepy.html    /progress.html   301
+/kontakt.html    /contact.html   301
+/polityka-prywatnosci.html    /privacy.html   301
+/regulamin.html    /terms.html   301

@@ -48,10 +48,11 @@ export const INDEXABLE_PAGES = Object.freeze([
   }),
   freezePage({
     key: "services",
-    file: "uslugi.html",
-    path: "/uslugi.html",
-    runtimePath: "/uslugi.html",
-    currentHref: "/uslugi.html",
+    file: "services.html",
+    path: "/services.html",
+    runtimePath: "/services.html",
+    currentHref: "/services.html",
+    legacyPath: "/uslugi.html",
     title: "Usługi | Lauren English",
     description:
       "Usługi języka angielskiego dla osób, które chcą uporządkować naukę: korepetycje 1:1, konwersacje, przygotowanie do egzaminów i English for Business.",
@@ -59,10 +60,11 @@ export const INDEXABLE_PAGES = Object.freeze([
   }),
   freezePage({
     key: "packages",
-    file: "pakiety.html",
-    path: "/pakiety.html",
-    runtimePath: "/pakiety.html",
-    currentHref: "/pakiety.html",
+    file: "packages.html",
+    path: "/packages.html",
+    runtimePath: "/packages.html",
+    currentHref: "/packages.html",
+    legacyPath: "/pakiety.html",
     title: "Pakiety | Lauren English",
     description:
       "Pakiety nauki angielskiego dopasowane do rytmu pracy i celów: Start, Regular i Intensive z jasnym zakresem wsparcia.",
@@ -70,10 +72,11 @@ export const INDEXABLE_PAGES = Object.freeze([
   }),
   freezePage({
     key: "materials",
-    file: "materialy.html",
-    path: "/materialy.html",
-    runtimePath: "/materialy.html",
-    currentHref: "/materialy.html",
+    file: "materials.html",
+    path: "/materials.html",
+    runtimePath: "/materials.html",
+    currentHref: "/materials.html",
+    legacyPath: "/materialy.html",
     title: "Materiały | Lauren English",
     description:
       "Materiały do nauki angielskiego: gramatyka, słownictwo, speaking i przygotowanie do egzaminów. Zestawy PDF i notatki do samodzielnej pracy.",
@@ -81,10 +84,11 @@ export const INDEXABLE_PAGES = Object.freeze([
   }),
   freezePage({
     key: "progress",
-    file: "postepy.html",
-    path: "/postepy.html",
-    runtimePath: "/postepy.html",
-    currentHref: "/postepy.html",
+    file: "progress.html",
+    path: "/progress.html",
+    runtimePath: "/progress.html",
+    currentHref: "/progress.html",
+    legacyPath: "/postepy.html",
     title: "Dziennik postępów | Lauren English",
     description:
       "Lokalny dziennik postępów w nauce angielskiego z celami tygodnia, check-inami i statystykami bez logowania.",
@@ -92,10 +96,11 @@ export const INDEXABLE_PAGES = Object.freeze([
   }),
   freezePage({
     key: "contact",
-    file: "kontakt.html",
-    path: "/kontakt.html",
-    runtimePath: "/kontakt.html",
-    currentHref: "/kontakt.html",
+    file: "contact.html",
+    path: "/contact.html",
+    runtimePath: "/contact.html",
+    currentHref: "/contact.html",
+    legacyPath: "/kontakt.html",
     title: "Kontakt | Lauren English",
     description:
       "Kontakt w sprawie indywidualnej nauki angielskiego: telefon, e-mail, adres oraz formularz zapytania o cele, poziom i format lekcji.",
@@ -115,16 +120,18 @@ export const PROJECT_DISCLOSURE = Object.freeze({
 export const LEGAL_PAGES = Object.freeze([
   freezePage({
     key: "privacy",
-    file: "polityka-prywatnosci.html",
-    path: "/polityka-prywatnosci.html",
-    runtimePath: "/polityka-prywatnosci.html",
+    file: "privacy.html",
+    path: "/privacy.html",
+    runtimePath: "/privacy.html",
+    legacyPath: "/polityka-prywatnosci.html",
     title: "Polityka prywatności | Lauren English",
   }),
   freezePage({
     key: "terms",
-    file: "regulamin.html",
-    path: "/regulamin.html",
-    runtimePath: "/regulamin.html",
+    file: "terms.html",
+    path: "/terms.html",
+    runtimePath: "/terms.html",
+    legacyPath: "/regulamin.html",
     title: "Regulamin serwisu | Lauren English",
   }),
   freezePage({
@@ -297,10 +304,13 @@ Sitemap: ${absoluteUrl("/sitemap.xml")}
 `;
 
 export const renderRedirects = () => {
-  const rules = UTILITY_PAGES.flatMap((page) =>
+  const rewrites = UTILITY_PAGES.flatMap((page) =>
     (page.aliases ?? []).map(
       (alias) => `${alias}    ${page.runtimePath}   200`,
     ),
   );
-  return `${rules.join("\n")}\n`;
+  const redirects = ALL_PAGES.filter(({ legacyPath }) => legacyPath).map(
+    ({ legacyPath, path }) => `${legacyPath}    ${path}   301`,
+  );
+  return `${[...rewrites, ...redirects].join("\n")}\n`;
 };

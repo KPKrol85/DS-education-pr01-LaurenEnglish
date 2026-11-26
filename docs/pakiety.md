@@ -10,7 +10,7 @@
 
 Każdy rekord zawiera publiczną etykietę, anchor strony pakietów, opis rytmu, listę korzyści, grupę docelową, opcjonalne wyróżnienie oraz CTA kontaktowe. `priceLabel: null` oznacza, że repozytorium nie zawiera zatwierdzonej ceny publicznej i renderery nie pokazują ceny.
 
-Homepage i `pakiety.html` korzystają z tych samych rekordów przez build-time renderery w `scripts/content-renderers.mjs`.
+Homepage i `packages.html` korzystają z tych samych rekordów przez build-time renderery w `scripts/content-renderers.mjs`.
 
 ## Dostęp do materiałów
 

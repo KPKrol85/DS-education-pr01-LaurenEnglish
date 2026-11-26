@@ -677,8 +677,14 @@ const run = async () => {
     assembledPages.set(page.file, assemblePage(source, page));
   }
 
+  const legacyFiles = ALL_PAGES.filter(({ legacyPath }) => legacyPath).map(
+    ({ legacyPath }) => legacyPath.slice(1),
+  );
   for (const page of ALL_PAGES) {
-    validateRuntimeAssets(assembledPages.get(page.file), page);
+    const html = assembledPages.get(page.file);
+    validateRuntimeAssets(html, page);
+    const legacyFile = legacyFiles.find((file) => html.includes(file));
+    assert(!legacyFile, `${page.file}: legacy route remains: ${legacyFile}`);
   }
 
   for (const page of SHARED_SHELL_PAGES) {

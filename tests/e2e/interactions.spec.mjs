@@ -7,40 +7,40 @@ import {
 
 const sharedHeaderPaths = Object.freeze([
   "/index.html",
-  "/uslugi.html",
-  "/pakiety.html",
-  "/materialy.html",
-  "/postepy.html",
-  "/kontakt.html",
-  "/polityka-prywatnosci.html",
+  "/services.html",
+  "/packages.html",
+  "/materials.html",
+  "/progress.html",
+  "/contact.html",
+  "/privacy.html",
   "/cookies.html",
-  "/regulamin.html",
+  "/terms.html",
 ]);
 
 const homepageAnchorCases = Object.freeze([
   {
     destination: "/index.html#how",
     id: "how",
-    sourcePath: "/uslugi.html",
+    sourcePath: "/services.html",
     sourceSelector: '.nav__link[href="/index.html#how"]',
   },
   {
     destination: "/index.html#about",
     id: "about",
-    sourcePath: "/uslugi.html",
+    sourcePath: "/services.html",
     sourceSelector: '.nav__link[href="/index.html#about"]',
   },
   {
     destination: "/index.html#faq",
     id: "faq",
-    sourcePath: "/uslugi.html",
+    sourcePath: "/services.html",
     sourceSelector: '.nav__link[href="/index.html#faq"]',
   },
   {
-    destination: "/kontakt.html#formularz",
+    destination: "/contact.html#formularz",
     id: "formularz",
-    sourcePath: "/uslugi.html",
-    sourceSelector: '.hero__actions a[href="/kontakt.html#formularz"]',
+    sourcePath: "/services.html",
+    sourceSelector: '.hero__actions a[href="/contact.html#formularz"]',
   },
 ]);
 
@@ -223,7 +223,7 @@ test("homepage hero presents a static progress teaser", async ({ page }) => {
   const teaserDescription = teaser.locator(".hero__process-description");
   const processList = teaser.getByRole("list");
   const processItems = processList.getByRole("listitem");
-  const progressLink = teaser.locator('a[href="/postepy.html"]');
+  const progressLink = teaser.locator('a[href="/progress.html"]');
 
   await expect(teaser).toBeVisible();
   await expect(teaserHeading).toHaveCount(1);
@@ -257,9 +257,9 @@ test("package navigation opens the hero while package CTAs target the cards", as
   const packageNavigationLink = page
     .getByRole("navigation", { name: "Główna nawigacja" })
     .getByRole("link", { name: "Pakiety", exact: true });
-  await expect(packageNavigationLink).toHaveAttribute("href", "/pakiety.html");
+  await expect(packageNavigationLink).toHaveAttribute("href", "/packages.html");
   await packageNavigationLink.click();
-  await expect(page).toHaveURL(/\/pakiety\.html$/);
+  await expect(page).toHaveURL(/\/packages\.html$/);
   await expect(page.getByRole("main")).toBeVisible();
   await expect(packageHeading).toHaveCount(1);
   await expect(packageHeading).toBeVisible();
@@ -268,11 +268,11 @@ test("package navigation opens the hero while package CTAs target the cards", as
 
   await page.goto("/index.html", { waitUntil: "networkidle" });
   const packageCta = page.locator(
-    '.hero__actions a[href="/pakiety.html#pakiety"]',
+    '.hero__actions a[href="/packages.html#pakiety"]',
   );
   await expect(packageCta).toHaveAccessibleName(/\S/u);
   await packageCta.click();
-  await expect(page).toHaveURL(/\/pakiety\.html#pakiety$/);
+  await expect(page).toHaveURL(/\/packages\.html#pakiety$/);
   await page.waitForLoadState("networkidle");
   await expectAnchorToClearHeader(page, "pakiety");
 
@@ -280,7 +280,7 @@ test("package navigation opens the hero while package CTAs target the cards", as
     .getByRole("navigation", { name: "Główna nawigacja" })
     .getByRole("link", { name: "Pakiety", exact: true })
     .click();
-  await expect(page).toHaveURL(/\/pakiety\.html$/);
+  await expect(page).toHaveURL(/\/packages\.html$/);
   await expect(page.getByRole("main")).toBeVisible();
   await expect(packageHeading).toHaveCount(1);
   await expect(packageHeading).toBeVisible();
@@ -321,7 +321,7 @@ test("project anchor targets clear the sticky header", async ({ page }) => {
     await expectCompactHomepageAnchorFocus(page, id);
   }
 
-  await page.goto("/uslugi.html", { waitUntil: "networkidle" });
+  await page.goto("/services.html", { waitUntil: "networkidle" });
   const mobileToggle = page.locator(".nav__toggle");
   if (await mobileToggle.isVisible()) await mobileToggle.click();
   const aboutLink = page.locator('.nav__link[href="/index.html#about"]');
@@ -339,7 +339,7 @@ test("project anchor targets clear the sticky header", async ({ page }) => {
   await expectAnchorToClearHeader(page, "about");
   await expectCompactHomepageAnchorFocus(page, "about");
 
-  await page.goto("/uslugi.html", { waitUntil: "networkidle" });
+  await page.goto("/services.html", { waitUntil: "networkidle" });
   await page.goto("/index.html#faq", { waitUntil: "networkidle" });
   await expectCompactHomepageAnchorFocus(page, "faq");
   const lightOutlineColor = await page
@@ -354,7 +354,7 @@ test("project anchor targets clear the sticky header", async ({ page }) => {
     .evaluate((element) => getComputedStyle(element).outlineColor);
   expect(darkOutlineColor).not.toBe(lightOutlineColor);
 
-  await page.goto("/kontakt.html#formularz", { waitUntil: "networkidle" });
+  await page.goto("/contact.html#formularz", { waitUntil: "networkidle" });
   await expectAnchorToClearHeader(page, "formularz");
 
   await page.goto("/index.html", { waitUntil: "networkidle" });
@@ -373,7 +373,7 @@ test("mobile drawer is inert when closed and contains keyboard focus when open",
   await page.goto("/index.html", { waitUntil: "networkidle" });
 
   const drawer = page.locator("[data-drawer]");
-  const firstLink = drawer.locator('a[href="/uslugi.html"]');
+  const firstLink = drawer.locator('a[href="/services.html"]');
   const toggle = page.locator(".nav__toggle");
 
   await expect(toggle).toHaveAccessibleName("Otwórz menu");
@@ -389,7 +389,7 @@ test("mobile drawer is inert when closed and contains keyboard focus when open",
   expect(await drawer.evaluate((element) => element.inert)).toBe(false);
 
   const drawerCta = drawer.locator(
-    'a.nav__cta[href="/kontakt.html#formularz"]',
+    'a.nav__cta[href="/contact.html#formularz"]',
   );
   await expect(drawerCta).toHaveCount(1);
   await expect(drawerCta).toBeVisible();
@@ -415,7 +415,7 @@ test("mobile drawer is inert when closed and contains keyboard focus when open",
 
   await toggle.click();
   await drawerCta.click();
-  await expect(page).toHaveURL(/\/kontakt\.html#formularz$/);
+  await expect(page).toHaveURL(/\/contact\.html#formularz$/);
   await expect(toggle).toHaveAttribute("aria-expanded", "false");
   await expect(drawer).toHaveAttribute("aria-hidden", "true");
   expectCleanDiagnostics(diagnostics);
@@ -571,7 +571,7 @@ test("homepage resources teaser links keyboard users to the catalogue", async ({
 
   const resources = page.locator("#resources");
   const teaser = resources.locator(".resources__teaser");
-  const catalogueLink = resources.locator('a[href="/materialy.html"]');
+  const catalogueLink = resources.locator('a[href="/materials.html"]');
 
   await expect(resources).toBeVisible();
   await expect(teaser).toBeVisible();
@@ -585,7 +585,7 @@ test("homepage resources teaser links keyboard users to the catalogue", async ({
   await catalogueLink.focus();
   await expect(catalogueLink).toBeFocused();
   await page.keyboard.press("Enter");
-  await expect(page).toHaveURL(/\/materialy\.html$/);
+  await expect(page).toHaveURL(/\/materials\.html$/);
   await expect(page.getByRole("main")).toBeVisible();
 
   const catalogueHeading = page.locator("main h1");

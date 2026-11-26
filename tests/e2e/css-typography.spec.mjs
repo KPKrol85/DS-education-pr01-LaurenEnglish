@@ -15,7 +15,7 @@ test("relaxed descriptions resolve the canonical line-height in both themes", as
   page,
 }) => {
   const diagnostics = collectRuntimeDiagnostics(page);
-  await page.goto("/materialy.html", { waitUntil: "networkidle" });
+  await page.goto("/materials.html", { waitUntil: "networkidle" });
 
   for (const theme of THEME_NAMES) {
     await page.evaluate(

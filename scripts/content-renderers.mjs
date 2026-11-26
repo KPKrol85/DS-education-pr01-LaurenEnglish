@@ -11,6 +11,7 @@ import {
   packagesPageHref,
   packagesSectionHref,
 } from "../js/data/packages.js";
+import { INDEXABLE_PAGES } from "./site-config.mjs";
 
 const createMarkers = (name) =>
   Object.freeze({
@@ -205,8 +206,15 @@ export const validateContentData = () => {
     JSON.stringify(Object.keys(packages)) === JSON.stringify(PACKAGE_KEYS),
     "Package records do not match the canonical key order",
   );
-  assert(isUsableHref(packagesSectionHref), "Invalid packages section route");
-  assert(packagesPageHref === "/pakiety.html", "Invalid packages page route");
+  const packagesPage = INDEXABLE_PAGES.find(({ key }) => key === "packages");
+  assert(
+    packagesPageHref === packagesPage?.runtimePath,
+    "Invalid packages page route",
+  );
+  assert(
+    packagesSectionHref === `${packagesPageHref}#pakiety`,
+    "Invalid packages section route",
+  );
 
   packageList.forEach((packageRecord) => {
     assert(
@@ -223,7 +231,7 @@ export const validateContentData = () => {
       `${packageRecord.key}: invalid highlight state`,
     );
     assert(
-      packageRecord.href === `/pakiety.html#pakiet-${packageRecord.key}`,
+      packageRecord.href === `${packagesPageHref}#pakiet-${packageRecord.key}`,
       `${packageRecord.key}: invalid package route`,
     );
     assert(packageRecord.summary, `${packageRecord.key}: missing summary`);

@@ -28,7 +28,7 @@
       "name": "Pakiety nauki",
       "short_name": "Pakiety",
       "description": "Zobacz dostępne pakiety nauki angielskiego.",
-      "url": "/pakiety.html",
+      "url": "/packages.html",
       "icons": [
         {
           "src": "/assets/pwa/shortcuts/packages-192.png",
@@ -41,7 +41,7 @@
       "name": "Materiały do nauki",
       "short_name": "Materiały",
       "description": "Przeglądaj materiały do samodzielnej nauki.",
-      "url": "/materialy.html",
+      "url": "/materials.html",
       "icons": [
         {
           "src": "/assets/pwa/shortcuts/materials-192.png",
@@ -54,7 +54,7 @@
       "name": "Dziennik postępów",
       "short_name": "Postępy",
       "description": "Otwórz lokalny dziennik celów i postępów.",
-      "url": "/postepy.html",
+      "url": "/progress.html",
       "icons": [
         {
           "src": "/assets/pwa/shortcuts/progress-192.png",

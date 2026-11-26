@@ -223,7 +223,7 @@ const verifyModernImageAssets = async () => {
 const verifyPictureMarkup = async () => {
   const pages = await Promise.all([
     readText(resolve(ROOT, "index.html")),
-    readText(resolve(ROOT, "kontakt.html")),
+    readText(resolve(ROOT, "contact.html")),
   ]);
   const html = pages.join("\n");
 

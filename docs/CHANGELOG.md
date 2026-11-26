@@ -51,6 +51,7 @@ For each implementation task, determine `Changelog: yes` or `Changelog: no`. Add
 
 ### Build and Tooling
 
+- Migrated seven public routes to English filenames and preserved legacy URLs with permanent HTTP 301 redirects.
 - Migrated the twelve-page production workflow to Vite-generated `dist/` output with hashed CSS and JavaScript, a Service Worker generated and validated from the final asset graph, Playwright verification against `dist/`, and the explicit `npm run build`/`dist` contract for manual terminal deployment to Netlify.
 - Consolidated the developer interface on `npm run dev` for the Vite development server and `npm run build` for the production pipeline, pinning the development origin to port `5173` and reassembling shared HTML when an assembler source changes.
 - Defined the Node.js 22 and npm 10.9.2 toolchain contract with a non-writing static release gate.

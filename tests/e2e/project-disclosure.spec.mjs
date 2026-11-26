@@ -71,14 +71,14 @@ test.describe("project disclosure modal", () => {
   test("stays closed on excluded routes and reopens for a new version", async ({
     page,
   }) => {
-    await page.goto("/regulamin.html", { waitUntil: "networkidle" });
+    await page.goto("/terms.html", { waitUntil: "networkidle" });
     await expect(getDialog(page)).toBeHidden();
 
     await page.evaluate(
       (key) => localStorage.setItem(key, "acknowledged-older-version"),
       PROJECT_DISCLOSURE.storageKey,
     );
-    await page.goto("/kontakt.html", { waitUntil: "networkidle" });
+    await page.goto("/contact.html", { waitUntil: "networkidle" });
     await expect(getDialog(page)).toBeVisible();
   });
 });

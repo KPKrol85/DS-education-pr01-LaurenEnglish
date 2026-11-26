@@ -26,7 +26,7 @@ const HERO_CASES = Object.freeze([
   },
   {
     asset: getAsset("contact-hero"),
-    pagePath: "/kontakt.html",
+    pagePath: "/contact.html",
     selector: ".hero__image--contact",
   },
 ]);

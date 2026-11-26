@@ -14,22 +14,33 @@ export const SHELL_MARKERS = Object.freeze({
   footerEnd: "    <!-- shared-shell:footer:end -->",
 });
 
+const getPage = (pageKey) => {
+  const page = SHARED_SHELL_PAGES.find(({ key }) => key === pageKey);
+  if (!page) {
+    throw new Error(`Unknown shared-shell page key: ${pageKey}`);
+  }
+  return page;
+};
+
+const CONTACT_HREF = getPage("contact").runtimePath;
+const CONTACT_FORM_HREF = `${CONTACT_HREF}#formularz`;
+
 const NAV_ITEMS = Object.freeze([
-  { key: "services", label: "Usługi", href: "/uslugi.html" },
-  { key: "packages", label: "Pakiety", href: "/pakiety.html" },
-  { key: "materials", label: "Materiały", href: "/materialy.html" },
-  { key: "progress", label: "Postępy", href: "/postepy.html" },
+  { key: "services", label: "Usługi" },
+  { key: "packages", label: "Pakiety" },
+  { key: "materials", label: "Materiały" },
+  { key: "progress", label: "Postępy" },
   { label: "Metodyka", href: "/index.html#how" },
   { label: "O mnie", href: "/index.html#about" },
   { label: "FAQ", href: "/index.html#faq" },
-  { key: "contact", label: "Kontakt", href: "/kontakt.html" },
+  { key: "contact", label: "Kontakt" },
 ]);
 
 const FOOTER_OFFER_LINKS = Object.freeze([
-  { label: "Usługi", href: "/uslugi.html" },
-  { label: "Pakiety", href: "/pakiety.html" },
-  { label: "Materiały", href: "/materialy.html" },
-  { label: "Postępy", href: "/postepy.html" },
+  { label: "Usługi", href: getPage("services").runtimePath },
+  { label: "Pakiety", href: getPage("packages").runtimePath },
+  { label: "Materiały", href: getPage("materials").runtimePath },
+  { label: "Postępy", href: getPage("progress").runtimePath },
   { label: "FAQ", href: "/index.html#faq" },
 ]);
 
@@ -55,14 +66,14 @@ export const FOOTER_CONTACT_ICONS = Object.freeze({
 });
 
 export const FOOTER_LEGAL_LINKS = Object.freeze([
-  { label: "Polityka prywatności", href: "/polityka-prywatnosci.html" },
-  { label: "Regulamin", href: "/regulamin.html" },
+  { label: "Polityka prywatności", href: getPage("privacy").runtimePath },
+  { label: "Regulamin", href: getPage("terms").runtimePath },
   { label: "Polityka cookies", href: "/cookies.html" },
 ]);
 
 const FOOTER_INFORMATION_LINKS = Object.freeze([
   { label: "O mnie", href: "/index.html#about" },
-  { label: "Kontakt", href: "/kontakt.html" },
+  { label: "Kontakt", href: CONTACT_HREF },
   ...FOOTER_LEGAL_LINKS,
 ]);
 
@@ -113,19 +124,12 @@ export const FOOTER_COPYRIGHT =
 export const FOOTER_BRAND_DESCRIPTION =
   "Indywidualna nauka angielskiego dopasowana do Twoich celów, poziomu i tempa. Spokojnie, konkretnie i bez chaosu.";
 
-const getPage = (pageKey) => {
-  const page = SHARED_SHELL_PAGES.find(({ key }) => key === pageKey);
-  if (!page) {
-    throw new Error(`Unknown shared-shell page key: ${pageKey}`);
-  }
-  return page;
-};
-
 const renderNavItems = (pageKey) =>
   NAV_ITEMS.map(({ key, label, href }) => {
+    const destination = key ? getPage(key).currentHref : href;
     const current = key === pageKey ? ' aria-current="page"' : "";
     return `              <li class="nav__item">
-                <a class="nav__link" href="${href}"${current}>${label}</a>
+                <a class="nav__link" href="${destination}"${current}>${label}</a>
               </li>`;
   }).join("\n");
 
@@ -163,9 +167,9 @@ export const PROJECT_DISCLOSURE_COPY = Object.freeze({
     "Serwis „Lauren English” ma charakter demonstracyjny i został przygotowany przez KP_Code Digital Studio jako propozycja profesjonalnej strony internetowej dla nauczyciela języka angielskiego.",
   dismissLabel: "Przejdź do strony",
   links: Object.freeze([
-    { label: "Polityka prywatności", href: "/polityka-prywatnosci.html" },
-    { label: "Regulamin", href: "/regulamin.html" },
-    { label: "Kontakt", href: "/kontakt.html" },
+    { label: "Polityka prywatności", href: getPage("privacy").runtimePath },
+    { label: "Regulamin", href: getPage("terms").runtimePath },
+    { label: "Kontakt", href: CONTACT_HREF },
   ]),
 });
 
@@ -256,11 +260,11 @@ ${renderNavItems(pageKey)}
                 <img class="theme-toggle__icon theme-toggle__icon--moon" src="/assets/icons/moon.svg" alt="" width="24" height="24" />
               </span>
             </button>
-            <a class="button button--primary nav__cta" href="/kontakt.html#formularz">Napisz do mnie</a>
+            <a class="button button--primary nav__cta" href="${CONTACT_FORM_HREF}">Napisz do mnie</a>
           </div>
         </nav>
         <div class="header__actions">
-        <a class="button button--primary header__cta" href="/kontakt.html#formularz">Napisz do mnie</a>
+        <a class="button button--primary header__cta" href="${CONTACT_FORM_HREF}">Napisz do mnie</a>
           <button class="button button--ghost theme-toggle" type="button" aria-label="Włącz tryb ciemny" aria-pressed="false" data-theme-toggle hidden>
             <span class="theme-toggle__icons" aria-hidden="true">
               <img class="theme-toggle__icon theme-toggle__icon--sun" src="/assets/icons/sun.svg" alt="" width="24" height="24" />

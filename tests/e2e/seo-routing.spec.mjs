@@ -34,10 +34,13 @@ test.describe("SEO metadata and static routing", () => {
     page,
     request,
   }) => {
-    const response = await request.get("/kontakt.html");
+    const response = await request.get("/contact.html");
     expect(response.status()).toBe(200);
 
-    await page.goto("/kontakt.html", { waitUntil: "networkidle" });
+    await page.goto("/contact.html?source=cta#formularz", {
+      waitUntil: "networkidle",
+    });
+    await expect(page).toHaveURL(/\/contact\.html\?source=cta#formularz$/);
     await expect(
       page.getByRole("heading", {
         level: 1,
@@ -58,7 +61,7 @@ test.describe("SEO metadata and static routing", () => {
       "ul. Marynarki Wojennej 12/31, 33-100 Tarnów, Polska",
     );
     await expect(
-      page.locator('.nav__link[href="/kontakt.html"]'),
+      page.locator('.nav__link[href="/contact.html"]'),
     ).toHaveAttribute("aria-current", "page");
 
     const form = page.locator("#formularz form");
@@ -76,27 +79,27 @@ test.describe("SEO metadata and static routing", () => {
       await expect(page.getByLabel(label, { exact: true })).toHaveCount(1);
     }
     await expect(
-      page.locator('.nav__cta[href="/kontakt.html#formularz"]'),
+      page.locator('.nav__cta[href="/contact.html#formularz"]'),
     ).toHaveText("Napisz do mnie");
     await expect(
-      page.locator('.header__cta[href="/kontakt.html#formularz"]'),
+      page.locator('.header__cta[href="/contact.html#formularz"]'),
     ).toHaveText("Napisz do mnie");
     await expect(
-      page.locator('footer a[href="/kontakt.html"]', { hasText: "Kontakt" }),
+      page.locator('footer a[href="/contact.html"]', { hasText: "Kontakt" }),
     ).toHaveCount(1);
 
     await page.goto("/index.html", { waitUntil: "networkidle" });
     const heroActions = page.locator(".hero__actions").first();
     await expect(
       heroActions.getByRole("link", { name: "Zobacz pakiety" }),
-    ).toHaveAttribute("href", "/pakiety.html#pakiety");
+    ).toHaveAttribute("href", "/packages.html#pakiety");
     await expect(
       heroActions.getByRole("link", { name: "Zobacz materiały" }),
     ).toHaveAttribute("href", "#resources");
     const compactContact = page.locator("#contact");
     await expect(
       compactContact.getByRole("link", { name: "Napisz do mnie" }),
-    ).toHaveAttribute("href", "/kontakt.html");
+    ).toHaveAttribute("href", "/contact.html");
     await expect(
       compactContact.getByRole("link", { name: "Zadzwoń" }),
     ).toHaveAttribute("href", "tel:+48533537091");

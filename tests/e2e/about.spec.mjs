@@ -143,7 +143,7 @@ test("O mnie portrait remains proportioned and aligned responsively", async ({
   }
 
   await page.setViewportSize({ width: 1440, height: 900 });
-  await page.goto("/uslugi.html", { waitUntil: "networkidle" });
+  await page.goto("/services.html", { waitUntil: "networkidle" });
   const aboutLink = page.locator('.nav__link[href="/index.html#about"]');
   await expect(aboutLink).toHaveText("O mnie");
   await aboutLink.click();

@@ -80,21 +80,21 @@ for (const file of PUBLIC_PAGES) {
 }
 
 const home = pages.get("index.html");
-const contact = pages.get("kontakt.html");
+const contact = pages.get("contact.html");
 const contactSection = home.match(/<section\b[^>]*\bid="contact"[\s\S]*?<\/section>/u)?.[0];
 
 assert(contactSection, "index.html: missing contact section");
 
 assert(
   !contactSection.includes("data-contact-status") &&
-    /<a\b[^>]*href="\/kontakt\.html"[^>]*>\s*Napisz do mnie\s*<\/a\s*>/iu.test(contactSection) &&
+    /<a\b[^>]*href="\/contact\.html"[^>]*>\s*Napisz do mnie\s*<\/a\s*>/iu.test(contactSection) &&
     new RegExp(`<a\\b[^>]*href="${escapeRegExp(APPROVED_CONTACT.telephoneUri)}"[^>]*>\\s*Zadzwoń\\s*<\\/a\\s*>`, "iu").test(contactSection),
   "index.html: compact contact CTA contract changed",
 );
 
 assert(!contactSection.includes("<form"), "index.html: contact section must not submit personal data");
 
-assert(contact, "kontakt.html: missing public contact page");
+assert(contact, "contact.html: missing public contact page");
 
 assert(
   contact.includes(`href="${APPROVED_CONTACT.telephoneUri}"`) &&
@@ -102,7 +102,7 @@ assert(
     contact.includes(`href="${APPROVED_CONTACT.emailUri}"`) &&
     contact.includes(APPROVED_CONTACT.email) &&
     new RegExp(`<address\\b[^>]*class="contact__address"[^>]*>\\s*${APPROVED_CONTACT.address}\\s*<\\/address>`, "iu").test(contact),
-  "kontakt.html: approved contact details changed",
+  "contact.html: approved contact details changed",
 );
 
 const publicHtml = [...pages.values()].join("\n");
@@ -128,14 +128,14 @@ for (const { file } of SHARED_SHELL_PAGES) {
 }
 
 for (const [file, html] of pages) {
-  if (file !== "kontakt.html") {
-    assert(!html.includes('data-netlify="true"'), `${file}: personal-data form must remain limited to kontakt.html`);
+  if (file !== "contact.html") {
+    assert(!html.includes('data-netlify="true"'), `${file}: personal-data form must remain limited to contact.html`);
   }
 }
 
 const contactForm = contact.match(/<form\b(?=[^>]*\bname="kontakt")[\s\S]*?<\/form>/iu)?.[0];
 
-assert(contactForm, "kontakt.html: missing contact form");
+assert(contactForm, "contact.html: missing contact form");
 
 assert(
   contactForm.includes('method="POST"') &&
@@ -144,11 +144,11 @@ assert(
     contactForm.includes('netlify-honeypot="bot-field"') &&
     contactForm.includes('name="form-name" value="kontakt"') &&
     contactForm.includes('name="bot-field"'),
-  "kontakt.html: Netlify Forms contract changed",
+  "contact.html: Netlify Forms contract changed",
 );
 
 for (const fieldName of ["name", "email", "topic", "message"]) {
-  assert(new RegExp(`<(?:input|select|textarea)\\b[^>]*name="${fieldName}"[^>]*required`, "iu").test(contactForm), `kontakt.html: required ${fieldName} field changed`);
+  assert(new RegExp(`<(?:input|select|textarea)\\b[^>]*name="${fieldName}"[^>]*required`, "iu").test(contactForm), `contact.html: required ${fieldName} field changed`);
 }
 
 console.log(

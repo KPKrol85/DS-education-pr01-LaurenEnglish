@@ -290,9 +290,23 @@ assert(
 
 const redirects = await readFile(resolve(ROOT, "_redirects"), "utf8");
 assert(redirects === renderRedirects(), "_redirects is stale");
+const redirectRules = redirects
+  .trim()
+  .split("\n")
+  .map((line) => line.trim().replace(/\s+/gu, " "));
+const expectedRedirectRules = [
+  "/thank-you /thank-you.html 200",
+  "/uslugi.html /services.html 301",
+  "/pakiety.html /packages.html 301",
+  "/materialy.html /materials.html 301",
+  "/postepy.html /progress.html 301",
+  "/kontakt.html /contact.html 301",
+  "/polityka-prywatnosci.html /privacy.html 301",
+  "/regulamin.html /terms.html 301",
+];
 assert(
-  !/^\/\*\s+\/index\.html\s+200!?\s*$/gmu.test(redirects),
-  "_redirects contains a homepage catch-all rewrite",
+  JSON.stringify(redirectRules) === JSON.stringify(expectedRedirectRules),
+  "_redirects must contain only the /thank-you rewrite and the seven approved legacy redirects",
 );
 await readFile(resolve(ROOT, "404.html"));
 

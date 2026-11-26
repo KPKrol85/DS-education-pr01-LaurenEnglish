@@ -49,13 +49,13 @@ Pliki HTML w katalogu głównym zawierają kanoniczną treść właściwą danej
 ```text
 .
 ├── index.html                 # strona główna
-├── uslugi.html                # usługi
-├── pakiety.html               # porównanie pakietów
-├── materialy.html             # katalog materiałów
-├── postepy.html               # lokalny dziennik postępów
-├── kontakt.html               # dane kontaktowe i formularz Netlify
-├── polityka-prywatnosci.html  # dokumenty prawne
-├── regulamin.html
+├── services.html              # usługi
+├── packages.html              # porównanie pakietów
+├── materials.html             # katalog materiałów
+├── progress.html              # lokalny dziennik postępów
+├── contact.html               # dane kontaktowe i formularz Netlify
+├── privacy.html               # dokumenty prawne
+├── terms.html
 ├── cookies.html
 ├── 404.html                   # strony techniczne
 ├── offline.html
@@ -167,7 +167,7 @@ Publiczna wersja pozostaje dostępna pod adresem wskazanym w sekcji „Wersja on
 
 Deployment produkcyjny jest uruchamiany manualnie z terminala dla istniejącego projektu Netlify. Repozytorium nie definiuje automatycznego deploymentu po commitach lub pushach ani integracji continuous deployment z GitHubem.
 
-Przed manualną publikacją należy odtworzyć zatwierdzony graf zależności przez `npm ci`, zbudować i zweryfikować `dist/`, a następnie opublikować ten katalog bez ręcznej edycji. Skopiowany `_redirects` obsługuje alias `/thank-you`, a formularz w `dist/kontakt.html` zachowuje atrybuty Netlify Forms, honeypot `bot-field` i stronę docelową `/thank-you.html`.
+Przed manualną publikacją należy odtworzyć zatwierdzony graf zależności przez `npm ci`, zbudować i zweryfikować `dist/`, a następnie opublikować ten katalog bez ręcznej edycji. Plik `dist/_redirects` zawiera siedem przekierowań HTTP 301 z dawnych polskich adresów na angielskie adresy `.html` oraz rewrite HTTP 200 z `/thank-you` na `/thank-you.html`. Formularz w `dist/contact.html` zachowuje atrybuty Netlify Forms, honeypot `bot-field` i stronę docelową `/thank-you.html`.
 
 ### Dostępność
 
@@ -209,7 +209,7 @@ Lauren English jest projektem portfolio KP_Code Digital Studio. Informacje o poc
 
 ### Dane i trwałość stanu
 
-- `js/data/packages.js` przechowuje trzy pakiety `start`, `regular` i `intensive`; homepage i `pakiety.html` korzystają z tych samych rekordów.
+- `js/data/packages.js` przechowuje trzy pakiety `start`, `regular` i `intensive`. Strona główna i `packages.html` korzystają z tych samych rekordów.
 - `js/data/materials.js` zawiera statyczny katalog, a `materialAccess.js` i `materialFilters.js` centralizują stany dostępu, powiązania z pakietami i filtrowanie.
 - dziennik postępów zapisuje cele i maksymalnie czternaście dni check-inów w `localStorage` pod kluczem `lauren_progress_v1`; dane można zresetować lub pobrać jako JSON.
 - wybrany motyw jest również zapisywany lokalnie, z bezpiecznym fallbackiem pamięciowym, gdy Web Storage jest niedostępny.
@@ -277,13 +277,13 @@ Root HTML files contain canonical page-specific content, but regions marked with
 ```text
 .
 ├── index.html                 # homepage
-├── uslugi.html                # services
-├── pakiety.html               # package comparison
-├── materialy.html             # materials catalogue
-├── postepy.html               # browser-local progress journal
-├── kontakt.html               # contact details and Netlify form
-├── polityka-prywatnosci.html  # legal documents
-├── regulamin.html
+├── services.html              # services
+├── packages.html              # package comparison
+├── materials.html             # materials catalogue
+├── progress.html              # browser-local progress journal
+├── contact.html               # contact details and Netlify form
+├── privacy.html               # legal documents
+├── terms.html
 ├── cookies.html
 ├── 404.html                   # technical pages
 ├── offline.html
@@ -395,7 +395,7 @@ The public deployment remains available at the URL listed under “Live Version.
 
 Production deployment is started manually from the terminal for the existing Netlify project. The repository defines neither commit- or push-triggered deployment nor GitHub-connected continuous deployment.
 
-Before manual publication, reproduce the committed dependency graph with `npm ci`, build and verify `dist/`, and then publish that directory without manual edits. The copied `_redirects` handles the `/thank-you` alias, while the form in `dist/kontakt.html` retains Netlify Forms attributes, the `bot-field` honeypot, and `/thank-you.html` as its destination.
+Before manual publication, reproduce the committed dependency graph with `npm ci`, build and verify `dist/`, and then publish that directory without manual edits. The `dist/_redirects` file contains seven HTTP 301 redirects from the former Polish URLs to the English `.html` URLs and an HTTP 200 rewrite from `/thank-you` to `/thank-you.html`. The form in `dist/contact.html` retains Netlify Forms attributes, the `bot-field` honeypot, and `/thank-you.html` as its destination.
 
 ### Accessibility
 
@@ -437,7 +437,7 @@ Lauren English is a KP_Code Digital Studio portfolio project. Project provenance
 
 ### Data and State Persistence
 
-- `js/data/packages.js` stores the three `start`, `regular`, and `intensive` packages; the homepage and `pakiety.html` use the same records.
+- `js/data/packages.js` stores the three `start`, `regular`, and `intensive` packages. The homepage and `packages.html` use the same records.
 - `js/data/materials.js` contains the static catalogue, while `materialAccess.js` and `materialFilters.js` centralize access states, package relationships, and filtering.
 - the progress journal stores goals and up to fourteen days of check-ins in `localStorage` under `lauren_progress_v1`; users can reset the data or download it as JSON.
 - the selected theme is also stored locally, with an in-memory fallback when Web Storage is unavailable.
